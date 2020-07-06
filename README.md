@@ -1,7 +1,8 @@
 # StochOptFormat
 
 This repository describes a file-format for stochastic optimization problems
-called _StochOptFormat_ with the file extension `.sof.json`.
+called _StochOptFormat_ with the file extension `.sof.json`. For convenience,
+we often refer to StochOptFormat as SOF.
 
 **Maintainers**
 
@@ -13,7 +14,7 @@ suggestions or comments, please open an issue._
 
 ## Preliminaries
 
-StochOptFormat is based on two recently developed concepts:
+SOF is based on two recently developed concepts:
 
 - The _Policy Graph_ decomposition of a multistage stochastic program [1].
 - _MathOptFormat_, a file format for mathematical optimization problems [2].
@@ -21,6 +22,9 @@ StochOptFormat is based on two recently developed concepts:
 **Do not read further without reading both papers first.**
 
 ## Example
+
+There are alot of concepts to unpack in SOF. We present a simple example first,
+and then explain each section in detail.
 
 Consider a two-stage newsvendor problem. In the first stage, the agent chooses
 `x`, the number of newspapers to buy at a cost \$1/newspaper. In the second
@@ -45,6 +49,10 @@ Second-stage:
 Encoded in StochOptFormat, this example becomes:
 ```json
 {
+  "version": {"major": 0, "minor": 1},
+  "author": "Oscar Dowson",
+  "name": "Two-stage newsvendor",
+  "description": "A SOF implementation of the classical two-stage newsvendor problem.",
   "root": {
     "name": "root",
     "states": [{"name": "x", "initial_value": 0}]
@@ -127,11 +135,130 @@ Encoded in StochOptFormat, this example becomes:
 }
 ```
 
-## The schema
+### Explanation
+
+SOF is a JSON document. The model is stored as a single JSON object. JSON
+objects are key-value mappings enclused by curly braces. There are four required
+keys at the top-level.
+
+- `version`
+
+  An object describing the minimum version of MathOptFormat needed to parse
+  the file. This is included to safeguard against later revisions. It contains
+  two keys: `major` and `minor`. These keys should be interpreted using
+  [SemVer](https://semver.org).
+
+- `root`
+
+  An object describing the root node of the policy graph. It has two required
+  keys:
+
+  - `name`
+
+    A unique string name for the root node to distinguish it from other nodes.
+
+  - `states`
+
+    A list of objects describing the state variables in the model. Each element
+    is an object with two required keys:
+
+    - `name`
+
+      A unique string name for the state variable.
+
+    - `initial_value`
+
+      The value of the state variable at the root node.
+
+- `nodes`
+
+  A list of objects with one element for each node in the policy graph. Each
+  node has four required keys:
+
+  - `name`
+
+    A unique string name for the node to distinguish it from other nodes.
+
+  - `states`
+
+    A list of objects to map the states to the variables inside the
+    subproblem. Each object has three required keys:
+
+    - `name`
+
+      The name of the state variable as defined in the root node.
+
+    - `in`
+
+      The name of the variable representing the incoming state variable in the
+      subproblem.
+
+    - `out`
+
+      The name of the variable representing the outgoing state variable in the
+      subproblem.
+
+  - `parameters`
+
+    A list of objects describing the parameters in the model. Each element
+    is an object with one required key:
+
+    - `name`
+
+    Within the subproblem, parameters are represented by decision variables.
+    This `name` is the name of a decision variable in `subproblem` that should
+    be interpreted as a parameter.
+
+  - `subproblem`
+
+    The subproblem corresponding to the node as a MathOptFormat object.
+
+- `edges`
+
+  A list of objects with one element for each edge in the policy graph. Each
+  object has three required keys:
+
+  - `from`
+
+    The name of the node that the edge exits.
+
+  - `to`
+
+    The name of the node that the edge enters. This cannot be the root node.
+
+  - `probability`
+
+    The nominal probability of transitioning from node `from` to node `to`.
+
+## FAQ
+
+- Q: The policy graph is too complicated. I just want a format for linear
+  T-stage stochastic programs.
+
+  A: The policy graph does take some getting used to. But for a T-stage problem,
+  our format requires T subproblems, a list of the state variables, and a
+  sequence of edges. Of those things, only the list of edges would be
+  superfluous in a purely T-stage format. So, for the sake of a list of objects
+  like `{"from": "1", "to": "2", "probability": 1}`, we get a format that
+  trivially extends to infinite horizon problems and problems with a stochastic process that is not stagewise independent.
+
+- Q: MathOptFormat is too complicated. Why can't we use LP or MPS files.
+
+  A: Go read the literature review in the MOI paper [1].
+
+- Q: Why isn't `parameters` a list of strings?
+
+  A: So we have the option to add additional fields (e.g., a default) in the
+  future in a backwards compatible way.
+
+- Q: You don't expect me to write these by hand do you?
+
+  A: No. We expect high-level libraries like [SDDP.jl](https://github.com/odow/SDDP.jl)
+  to do the reading and writing for you.
 
 ## References
 
-[1] Dowson, O. (2020). The policy grpah decompisition of multistage stochastic
+[1] Dowson, O. (2020). The policy grpah decomposition of multistage stochastic
   programming problems. Networks, 71(1), 3-23.
   doi: https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932
   [preprint](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)

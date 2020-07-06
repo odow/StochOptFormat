@@ -3,8 +3,33 @@
     "$id": "http://odow.github.io/SDDP.jl/sof.schema.json",
     "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
-    "required": ["root", "nodes", "edges"],
+    "required": ["version", "root", "nodes", "edges"],
     "properties": {
+        "version": {
+            "description": "The version of StochOptFormat that this schema validates against.",
+            "type": "object",
+            "required": ["minor", "major"],
+            "properties": {
+                "minor": {
+                    "const": 1
+                },
+                "major": {
+                    "const": 0
+                }
+            }
+        },
+        "name": {
+            "description": "The name of the model.",
+            "type": "string"
+        },
+        "author": {
+            "description": "The author of the model for citation purposes.",
+            "type": "string"
+        },
+        "description": {
+            "description": "A human-readable description of the model.",
+            "type": "string"
+        },
         "root": {
             "description": "An object for the root node.",
             "type": "object",
@@ -99,7 +124,7 @@
         "node": {
             "description": "An node in the policy graph.",
             "type": "object",
-            "required": ["name", "states", "subproblem"],
+            "required": ["name", "states", "parameters", "subproblem"],
             "properties": {
                 "name": {
                     "description": "A unique name for the node, to use used in `edges`.",
