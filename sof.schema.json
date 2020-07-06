@@ -128,6 +128,19 @@
                         }
                     }
                 },
+                "parameters": {
+                    "description": "An array of objects that map the name of a parameter to the variable in the MathOptFormat file.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name"],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
                 "noise_terms": {
                     "type": "array",
                     "items": {
