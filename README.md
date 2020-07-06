@@ -257,6 +257,31 @@ keys at the top-level.
   A: No. We expect high-level libraries like [SDDP.jl](https://github.com/odow/SDDP.jl)
   to do the reading and writing for you.
 
+- Q: This seems catered to SDDP; I just have some scenarios.
+
+  A: The policy graph can represent any scenario tree. Go read [1].
+
+- Q: I want continuous random variables.
+
+  A: In this initial version of the format, we only consider finite discrete
+  random variables. We might consider adding continuous onces in the future.
+
+- Q: My stochastic process is not stagewise-independent.
+
+  A: Two options: expand the state-space, or create a scenario tree. Go read
+  [1].
+
+- Q: I don't like JSON.
+
+  A: Open an issue with a better idea. JSON is universal support in every major
+  programming language, and is human-readable(-ish).
+
+- Q: JSON seems too verbose.
+
+  A: JSON files compress well. For example, for models in the MIPLIB 2017
+  benchmark set, compressed MathOptFormat files are only 37% larger than their
+  compressed MPS equivalents.
+
 ## References
 
 [1] Dowson, O. (2020). The policy grpah decomposition of multistage stochastic
