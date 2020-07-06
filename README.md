@@ -62,6 +62,7 @@ Encoded in StochOptFormat, this example becomes:
     "states": [
       {"name": "x", "in": "x_in", "out": "x_out"}
     ],
+    "parameters": [],
     "subproblem": {
       "version": {"major": 0, "minor": 4},
       "variables": [{"name": "x_in"}, {"name": "x_out"}],
