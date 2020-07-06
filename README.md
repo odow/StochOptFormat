@@ -1,32 +1,31 @@
 # StochOptFormat
 
-This repository describes a file-format for stochastic optimziation problems
+This repository describes a file-format for stochastic optimization problems
 called _StochOptFormat_ with the file extension `.sof.json`.
 
-Is is an extension of the [MathOptFormat (`.mof.json`) file format](https://github.com/odow/MathOptFormat)
-for single-stage mathematical optimization problems.
+**Maintainers**
+
+- Oscar Dowson (Northwestern)
+- Joaquim Garcia (PSR-Inc, PUC-Rio)
 
 _Note: this file format is in development. Things may change!_
 
-## Standard form
+## Preliminaries
 
-The format is based on the _Policy Graph_ formulation of a multistage stochastic
-program.
+StochOptFormat is based on two recently developed concepts:
 
-A pre-print of a paper describing the policy graph framework is available on
-Optimization Online:
-http://www.optimization-online.org/DB_HTML/2018/11/6914.html
+1. The _Policy Graph_ decomposition of a multistage stochastic program
 
-**We highly recommend that you read the paper before looking at this format!**
+  Dowson, O. (2020). The policy grpah decompisition of multistage stochastic
+  programming problems. Networks, 71(1), 3-23. doi:
+  https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932
 
-## Implementations
+  A pre-print of a paper is [also available](http://www.optimization-online.org/DB_HTML/2018/11/6914.html).
 
-### In progress
+2. _MathOptFormat_, a file format for mathematical optimization problems.
 
-- Julia
-    - The [SDDP.jl](https://github.com/odow/SDDP.jl) package supports reading
-      and writing StochOptFormat files.
+  Legat, B., Dowson, O., Garcia, J.D., Lubin, M. (2020). MathOptInterface: a
+  data structure for mathematical optimization problems. URL:
+  http://www.optimization-online.org/DB_HTML/2020/02/7609.html.
 
-### Complete
-
-- Nothing, yet :(
+**Do not read further without reading both papers first.**

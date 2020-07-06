@@ -1,34 +1,28 @@
 {
     "$schema": "https://json-schema.org/schema#",
-    "$id": "https://raw.githubusercontent.com/odow/StochOptFormat/master/sof.schema.json",
-    "title": "A file format for multistage stochastic programming",
+    "$id": "http://odow.github.io/SDDP.jl/sof.schema.json",
+    "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
-    "required": ["version", "root_node", "nodes", "arcs"],
+    "required": ["root", "nodes", "edges"],
     "properties": {
-        "version": {
-            "const": 0
-        },
-        "author": {
-            "type": "string"
-        },
-        "description": {
-            "type": "string"
-        },
-        "root_node": {
+        "root": {
+            "description": "An object for the root node.",
             "type": "object",
             "required": ["name", "states"],
             "properties": {
                 "name": {
-                    "description": "The name of the root node",
+                    "description": "The name of the root node, to be used in `edges`.",
                     "type": "string"
                 },
                 "states": {
+                    "description": "A vector of state variables.",
                     "type": "array",
                     "items": {
                         "type": "object",
                         "required": ["name", "initial_value"],
                         "properties": {
                             "name": {
+                                "description": "A unique name for the state variable.",
                                 "type": "string"
                             },
                             "initial_value": {
@@ -41,66 +35,51 @@
             }
         },
         "nodes": {
+            "description": "An array of nodes in the policy graph.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/node"
+            }
+        },
+        "edges": {
+            "description": "An array of edges in the policy graph.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/edge"
+            }
+        }
+    },
+    "test_data": {
+        "type": "array",
+        "items": {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["name", "states", "model"],
                 "properties": {
-                    "name": {
-                        "description": "The name of the node.",
+                    "node": {
                         "type": "string"
                     },
-                    "states": {
+                    "support": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "properties": {
                                 "name": {
-                                    "description": "The name of the state-variable in `#/root_node`.",
                                     "type": "string"
                                 },
-                                "in": {
-                                    "description": "The name of the incoming state-variable.",
-                                    "type": "string"
-                                },
-                                "out": {
-                                    "description": "The name of the outgoing state-variable.",
-                                    "type": "string"
-                                },
-                            }
-                        }
-                    },
-                    "model": {
-                        "description": "A MathOptFormat model",
-                        "$ref": "https://raw.githubusercontent.com/odow/MathOptFormat/v0.2.1/mof.schema.json#"
-                    },
-                    "noise_terms": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "required": ["probability", "modifications"],
-                            "properties": {
-                                "probability": {
-                                    "type": "number",
-                                    "minimum": 0.0,
-                                    "maximum": 1.0
-                                },
-                                "modifications": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/modification"
-                                    }
+                                "value": {
+                                    "type": "number"
                                 }
                             }
                         }
-                    },
+                    }
                 }
             }
-        },
+        }
     },
-    "arcs": {
-        "type": "array",
-        "items": {
+    "definitions": {
+        "edge": {
+            "description": "An edge in the policy graph, describing a transition from node `from` to node `to` with probability `probability`.",
             "type": "object",
             "required": ["from", "to", "probability"],
             "properties": {
@@ -112,73 +91,73 @@
                 },
                 "probability": {
                     "type": "number",
-                    "minimum": 0.0,
-                    "maximum": 1.0
+                    "minimum": 0,
+                    "maximum": 1
+                }
+            }
+        },
+        "node": {
+            "description": "An node in the policy graph.",
+            "type": "object",
+            "required": ["name", "states", "subproblem"],
+            "properties": {
+                "name": {
+                    "description": "A unique name for the node, to use used in `edges`.",
+                    "type": "string"
+                },
+                "subproblem": {
+                    "description": "The basic subproblem in MathOptFormat.",
+                    "$ref": "https://github.com/odow/MathOptFormat/blob/v0.4.0/mof.schema.json"
+                },
+                "states": {
+                    "description": "An array of objects that map the name of the state variable to the incoming and outgoing state variables in the MathOptFormat file.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "in", "out"],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "in": {
+                                "type": "string"
+                            },
+                            "out": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "noise_terms": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["probability", "support"],
+                        "properties": {
+                            "probability": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                            },
+                            "support": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": ["parameter", "value"],
+                                    "properties": {
+                                        "parameter": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "number"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-},
-"definitions": {
-    "modification": {
-        "type": "object",
-        "required": ["head", "constraint"],
-        "properties": {
-            "constraint": {
-                "type": "name"
-            }
-        },
-        "oneOf": [{
-            "required": ["new_set"],
-            "properties": {
-                "head": {
-                    "const": "NewSet"
-                },
-                "new_set": {
-                    "oneOf": [{
-                        "$ref": "https://raw.githubusercontent.com/odow/MathOptFormat/v0.2.1/mof.schema.json#/definitions/scalar_sets"
-                    }, {
-                        "$ref": "https://raw.githubusercontent.com/odow/MathOptFormat/v0.2.1/mof.schema.json#/definitions/vector_sets"
-                    }]
-                }
-            }
-        }, {
-            "required": ["constant"],
-            "properties": {
-                "head": {
-                    "const": "ScalarConstantChange"
-                },
-                "constant": {
-                    "type": "number"
-                }
-            }
-        }, {
-            "required": ["constants"],
-            "properties": {
-                "head": {
-                    "const": "VectorConstantChange"
-                },
-                "constants": {
-                    "type": "array",
-                    "items": {
-                        "type": "number"
-                    }
-                }
-            }
-        }, {
-            "required": ["coefficient", "variable"],
-            "properties": {
-                "head": {
-                    "const": "ScalarCoefficientChange"
-                },
-                "coefficient": {
-                    "type": "number"
-                },
-                "variable": {
-                    "type": "string"
-                }
-            }
-        }]
-    }
-}
 }
