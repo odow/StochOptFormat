@@ -1,0 +1,88 @@
+{
+    "version": {"major": 0, "minor": 1},
+    "author": "Oscar Dowson",
+    "name": "Two-stage newsvendor",
+    "description": "A SOF implementation of the classical two-stage newsvendor problem.",
+    "root": {
+      "name": "root",
+      "states": [{"name": "x", "initial_value": 0}]
+    },
+    "nodes": [{
+      "name": "first_stage",
+      "states": [
+        {"name": "x", "in": "x_in", "out": "x_out"}
+      ],
+      "parameters": [],
+      "subproblem": {
+        "version": {"major": 0, "minor": 4},
+        "variables": [{"name": "x_in"}, {"name": "x_out"}],
+        "objective": {
+          "sense": "max",
+          "function": {
+            "head": "ScalarAffineFunction",
+            "terms": [{"variable": "x_out", "coefficient": -1}],
+            "constant": 0
+          }
+        },
+        "constraints": [{
+          "function": {"head": "SingleVariable", "variable": "x_out"},
+          "set": {"head": "GreaterThan", "lower": 0}
+        }]
+      }
+    }, {
+      "name": "second_stage",
+      "states": [
+        {"name": "x", "in": "x_in", "out": "x_out"}
+      ],
+      "parameters": [
+        {"name": "d"}
+      ],
+      "subproblem": {
+        "version": {"major": 0, "minor": 4},
+        "variables": [
+          {"name": "x_in"}, {"name": "x_out"}, {"name": "u"}, {"name": "d"}
+        ],
+        "objective": {
+          "sense": "max",
+          "function": {
+            "head": "ScalarAffineFunction",
+            "terms": [{"variable": "u", "coefficient": 1.5}],
+            "constant": 0
+          }
+        },
+        "constraints": [{
+          "function": {
+            "head": "ScalarAffineFunction",
+            "terms": [
+              {"variable": "u", "coefficient": 1},
+              {"variable": "x_in", "coefficient": -1}
+            ],
+            "constant": 0
+          },
+          "set": {"head": "LessThan", "upper": 0}
+        }, {
+          "function": {
+            "head": "ScalarAffineFunction",
+            "terms": [
+              {"variable": "u", "coefficient": 1},
+              {"variable": "d", "coefficient": -1}
+            ],
+            "constant": 0
+          },
+          "set": {"head": "LessThan", "upper": 0}
+        }, {
+          "function": {"head": "SingleVariable", "variable": "u"},
+          "set": {"head": "GreaterThan", "lower": 0}
+        }]
+      },
+      "noise_terms": [{
+        "probability": 0.4, "support": [{"parameter": "d", "value": 10}]
+      }, {
+        "probability": 0.6, "support": [{"parameter": "d", "value": 14}]
+      }]
+    }],
+    "edges": [
+      {"from": "root", "to": "first_stage", "probability": 1.0},
+      {"from": "first_stage", "to": "second_stage", "probability": 1.0}
+    ]
+  }

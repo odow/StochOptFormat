@@ -105,28 +105,30 @@ Encoded in StochOptFormat, this example becomes:
           "head": "ScalarAffineFunction",
           "terms": [
             {"variable": "u", "coefficient": 1},
-            {"variable": "x", "coefficient": -1}
-          ]
+            {"variable": "x_in", "coefficient": -1}
+          ],
+          "constant": 0
         },
-        "set": {"head": "LessThan", "lower": 0}
+        "set": {"head": "LessThan", "upper": 0}
       }, {
         "function": {
           "head": "ScalarAffineFunction",
           "terms": [
             {"variable": "u", "coefficient": 1},
             {"variable": "d", "coefficient": -1}
-          ]
+          ],
+          "constant": 0
         },
-        "set": {"head": "LessThan", "lower": 0}
+        "set": {"head": "LessThan", "upper": 0}
       }, {
         "function": {"head": "SingleVariable", "variable": "u"},
         "set": {"head": "GreaterThan", "lower": 0}
-      }, ]
+      }]
     },
     "noise_terms": [{
-      "probabilty": 0.4, "support": [{"parameter": "d", "value": 10}]
+      "probability": 0.4, "support": [{"parameter": "d", "value": 10}]
     }, {
-      "probabilty": 0.6, "support": [{"parameter": "d", "value": 14}]
+      "probability": 0.6, "support": [{"parameter": "d", "value": 14}]
     }]
   }],
   "edges": [
