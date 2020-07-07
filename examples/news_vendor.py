@@ -1,3 +1,9 @@
+# A simple example reading a StochOptFormat file and solving it via Benders
+# decomposition.
+#
+# The code is demonstration only, and does not contain robust checks or many
+# nice error messages, preferring to throw assertion errors.
+
 import json
 import math
 from pulp import *
@@ -89,54 +95,66 @@ def solve_first_stage(node):
     return {s['name']: node['vars'][s['out']].varValue for s in node['states']}
 
 def add_cut(first_stage, x, ret):
-    first_stage['prob'] += first_stage['theta'] >= lpSum(
-        p * (
-            r['objective'] +
-            lpSum(
-                r['pi'][s['name']] * (first_stage['vars'][s['out']] - x[s['name']])
-                for s in first_stage['states']
-            )
-        ) for (p, r) in ret
+    cut_term = lpSum(
+        p * r['objective'] + p * lpSum(
+            r['pi'][s['name']] * (first_stage['vars'][s['out']] - x[s['name']])
+            for s in first_stage['states']
+        )
+        for (p, r) in ret
     )
-
-with open('news_vendor.sof.json', 'r') as io:
-    data = json.load(io)
-
-assert(data['version']['major'] == 0)
-assert(data['version']['minor'] == 1)
-assert(len(data['nodes']) == 2)
-assert(len(data['edges']) == 2)
-
-nodes = {}
-for node in data['nodes']:
-    nodes[node['name']] = mathoptformat_to_pulp(node)
-
-first_stage, second_stage = None, None
-for edge in data['edges']:
-    if edge['from'] == data['root']['name']:
-        first_stage = nodes[edge['to']]
+    if first_stage['prob'].sense == -1:
+        first_stage['prob'] += first_stage['theta'] <= cut_term
     else:
-        second_stage = nodes[edge['to']]
+        first_stage['prob'] += first_stage['theta'] >= cut_term
 
-for s in data['root']['states']:
-    for st in first_stage['states']:
-        if s['name'] == st['name']:
-            x = first_stage['vars'][st['in']]
-            x.lowBound = s['initial_value']
-            x.upBound = s['initial_value']
-first_stage['theta'] = LpVariable("theta", -10**6, 10**6)
-first_stage['prob'].objective = first_stage['prob'].objective + first_stage['theta']
+def load_two_stage_problem(filename):
+    with open(filename, 'r') as io:
+        data = json.load(io)
+    assert(data['version']['major'] == 0)
+    assert(data['version']['minor'] == 1)
+    assert(len(data['nodes']) == 2)
+    assert(len(data['edges']) == 2)
+    nodes = {}
+    for node in data['nodes']:
+        nodes[node['name']] = mathoptformat_to_pulp(node)
+    first_stage, second_stage = None, None
+    for edge in data['edges']:
+        if edge['from'] == data['root']['name']:
+            first_stage = nodes[edge['to']]
+        else:
+            second_stage = nodes[edge['to']]
 
+    for s in data['root']['states']:
+        for st in first_stage['states']:
+            if s['name'] == st['name']:
+                x = first_stage['vars'][st['in']]
+                x.lowBound = s['initial_value']
+                x.upBound = s['initial_value']
+    first_stage['theta'] = LpVariable("theta", -10**6, 10**6)
+    first_stage['prob'].objective += first_stage['theta']
+    return first_stage, second_stage
+
+def benders(first_stage, second_stage, iteration_limit = 20):
+    bounds = []
+    for iter in range(iteration_limit):
+        x = solve_first_stage(first_stage)
+        ret = [(
+            noise['probability'],
+            solve_second_stage(second_stage, x, noise['support'])
+        ) for noise in second_stage['noise_term']]
+        add_cut(first_stage, x, ret)
+        det_bound = value(first_stage['prob'].objective)
+        stat_bound = det_bound - first_stage['theta'].varValue + sum(
+            p * value(r['objective']) for (p, r) in ret
+        )
+        bounds.append((det_bound, stat_bound))
+        if abs(det_bound - stat_bound) < 1e-6:
+            break
+    return bounds
+
+first_stage, second_stage = load_two_stage_problem('news_vendor.sof.json')
+ret = benders(first_stage, second_stage)
+
+# Check solution!
 x = solve_first_stage(first_stage)
-ret = [ \
-    (noise['probability'], solve_second_stage(second_stage, x, noise['support'])) \
-    for noise in second_stage['noise_term']
-]
-add_cut(first_stage, x, ret)
-
-x = solve_first_stage(first_stage)
-ret = [ \
-    (noise['probability'], solve_second_stage(second_stage, x, noise['support'])) \
-    for noise in second_stage['noise_term']
-]
-add_cut(first_stage, x, ret)
+assert(x['x'] == 10)
