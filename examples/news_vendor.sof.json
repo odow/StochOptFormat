@@ -2,7 +2,7 @@
     "version": {"major": 0, "minor": 1},
     "author": "Oscar Dowson",
     "name": "Two-stage newsvendor",
-    "description": "A SOF implementation of the classical two-stage newsvendor problem.",
+    "description": "An SOF implementation of the classical two-stage newsvendor problem.",
     "root": {
       "name": "root",
       "states": [{"name": "x", "initial_value": 0}]

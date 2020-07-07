@@ -33,17 +33,17 @@ stage, the uncertain demand of `d` newspapers is realized, and the agent sells
 `u = min{x, d}`. The demand is a either 10 units with probability 0.4, or 14
 units with probability 0.6.
 
-First-stage:
+The first-stage subproblem is:
 ```
-  V₀(x) = max: -1 * x'
-          s.t. x' >= 0
+  V₀(x) = max: -1 * x′
+          s.t.      x′ >= 0,
 ```
-Second-stage:
+and the second-stage is:
 ```
   V₁(x, d) = max: 1.5 * u
              s.t. u - x     <= 0
-                      x - d <= 0
-                  u         >= 0
+                  u     - d <= 0
+                  u         >= 0.
 ```
 
 Encoded in StochOptFormat, this example becomes:
@@ -52,7 +52,7 @@ Encoded in StochOptFormat, this example becomes:
   "version": {"major": 0, "minor": 1},
   "author": "Oscar Dowson",
   "name": "Two-stage newsvendor",
-  "description": "A SOF implementation of the classical two-stage newsvendor problem.",
+  "description": "An SOF implementation of the classical two-stage newsvendor problem.",
   "root": {
     "name": "root",
     "states": [{"name": "x", "initial_value": 0}]
@@ -245,19 +245,19 @@ keys at the top-level.
   like `{"from": "1", "to": "2", "probability": 1}`, we get a format that
   trivially extends to infinite horizon problems and problems with a stochastic process that is not stagewise independent.
 
-- Q: MathOptFormat is too complicated. Why can't we use LP or MPS files.
+- Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
 
   A: Go read the literature review in the MOI paper [1].
-
-- Q: Why isn't `parameters` a list of strings?
-
-  A: So we have the option to add additional fields (e.g., a default) in the
-  future in a backwards compatible way.
 
 - Q: You don't expect me to write these by hand do you?
 
   A: No. We expect high-level libraries like [SDDP.jl](https://github.com/odow/SDDP.jl)
   to do the reading and writing for you.
+
+- Q: What happened to SMPS?
+
+  A: SMPS is too limiting for multistage problems. We hope to implement a
+  converter between SMPS and StochOptFormat at some point... Want to help?
 
 - Q: This seems catered to SDDP; I just have some scenarios.
 
@@ -284,9 +284,32 @@ keys at the top-level.
   benchmark set, compressed MathOptFormat files are only 37% larger than their
   compressed MPS equivalents.
 
+- Q: Why isn't `parameters` a list of strings?
+
+  A: So we have the option to add additional fields (e.g., a default) in the
+  future in a backwards compatible way.
+
+- Q: I want the uncertainty to be an objective/constraint coefficient.
+
+  A: Formulate the objective/constraint as a `ScalarQuadraticFunction`. It's up
+  to the reader to infer from the list of the parameters if this is a
+  parameterized `ScalarAffineFunction`, or a `ScalarQuadraticFunction` without
+  parameters.
+
+- Q: Follow up to the previous. I want to have `parameter * x * y`.
+
+  A: Do you? Changing the quadratic coefficient matrices in solvers is slow, and
+  doing so could easily make the problem non-convex. If you really want to, you
+  could add a slack variable (and equality constraint) `z == parameter * x`, and
+  then use `z * y`.
+
+- Q: Why haven't you written an interface to ⟨INSERT LANGUAGE HERE⟩ yet?
+
+  A: Does ⟨INSERT LANGUAGE HERE⟩ have a JSON reader? Just import the file!
+
 ## References
 
-[1] Dowson, O. (2020). The policy grpah decomposition of multistage stochastic
+[1] Dowson, O. (2020). The policy graph decomposition of multistage stochastic
   programming problems. Networks, 71(1), 3-23.
   doi: https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932
   [preprint](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)
