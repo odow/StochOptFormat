@@ -5,6 +5,7 @@
 # nice error messages, preferring to throw assertion errors.
 
 import json
+import jsonschema
 import math
 from pulp import *
 
@@ -155,6 +156,14 @@ def benders(first_stage, second_stage, iteration_limit = 20):
             break
     return bounds
 
+def validate(filename):
+    with open(filename, 'r') as io:
+        instance = json.load(io)
+    with open('../sof.schema.json', 'r') as io:
+        schema = json.load(io)
+    jsonschema.validate(instance = instance, schema = schema)
+
+validate('news_vendor.sof.json')
 first_stage, second_stage = load_two_stage_problem('news_vendor.sof.json')
 ret = benders(first_stage, second_stage)
 
@@ -164,16 +173,4 @@ assert(x['x'] == 10)
 print(ret)
 
 
-import jsonschema
 
-def parsefile(filename):
-    with open(filename, 'r') as io:
-        data = json.load(io)
-    return data
-
-sof = parsefile('../sof.schema.json')
-mof = parsefile('../mof.schema.json')
-resolver = jsonschema.RefResolver.from_schema(mof)
-validator = jsonschema.Draft7Validator(sof, resolver = resolver)
-instance = parsefile('news_vendor.sof.json')
-validator.validate(instance)

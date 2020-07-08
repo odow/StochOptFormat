@@ -7,6 +7,7 @@
 using JuMP
 import Clp
 import JSON
+import JSONSchema
 
 function mathoptformat_to_jump(node)
     io = IOBuffer()
@@ -21,24 +22,24 @@ function mathoptformat_to_jump(node)
     return Dict(
         "prob" => jmp,
         "vars" => Dict(name(v) => v for v in all_variables(jmp)),
-        "states" => node["states"],
+        "state_variables" => node["state_variables"],
         "noise_term" => get(node, "noise_terms", Any[])
     )
 end
 
 function solve_second_stage(node, state, noise)
-    for s in node["states"]
-        fix(node["vars"][s["in"]], state[s["name"]]; force = true)
+    for (name, s) in node["state_variables"]
+        fix(node["vars"][s["in"]], state[name]; force = true)
     end
-    for w in noise
-        fix(node["vars"][w["parameter"]], w["value"]; force = true)
+    for (name, w) in noise
+        fix(node["vars"][name], w; force = true)
     end
     optimize!(node["prob"])
     return Dict(
         "objective" => objective_value(node["prob"]),
         "pi" => Dict(
-            s["name"] => shadow_price(FixRef(node["vars"][s["in"]]))
-            for s in node["states"]
+            name => shadow_price(FixRef(node["vars"][s["in"]]))
+            for (name, s) in node["state_variables"]
         )
     )
 end
@@ -46,16 +47,22 @@ end
 function solve_first_stage(node)
     optimize!(node["prob"])
     return Dict(
-        s["name"] => value(node["vars"][s["out"]])  for s in node["states"]
+        name => value(node["vars"][s["out"]])
+        for (name, s) in node["state_variables"]
     )
 end
 
 function add_cut(first_stage, x, ret)
-    cut_term = @expression(first_stage["prob"],
-        sum(p * r["objective"] + p * sum(
-            r["pi"][s["name"]] * (first_stage["vars"][s["out"]] - x[s["name"]])
-            for s in first_stage["states"])
-        for (p, r) in ret)
+    cut_term = @expression(
+        first_stage["prob"],
+        sum(
+            p * r["objective"] +
+            p * sum(
+                r["pi"][name] * (first_stage["vars"][s["out"]] - x[name])
+                for (name, s) in first_stage["state_variables"]
+            )
+            for (p, r) in ret
+        )
     )
     if objective_sense(first_stage["prob"]) == MOI.MAX_SENSE
         @constraint(first_stage["prob"], first_stage["theta"] <= cut_term)
@@ -72,8 +79,8 @@ function load_two_stage_problem(filename)
     @assert(length(data["nodes"]) == 2)
     @assert(length(data["edges"]) == 2)
     nodes = Dict(
-        node["name"] => mathoptformat_to_jump(node)
-        for node in data["nodes"]
+        name => mathoptformat_to_jump(node)
+        for (name, node) in data["nodes"]
     )
     first_stage, second_stage = nothing, nothing
     for edge in data["edges"]
@@ -83,13 +90,9 @@ function load_two_stage_problem(filename)
             second_stage = nodes[edge["to"]]
         end
     end
-    for s in data["root"]["states"]
-        for st in first_stage["states"]
-            if s["name"] == st["name"]
-                x = first_stage["vars"][st["in"]]
-                fix(x, s["initial_value"]; force = true)
-            end
-        end
+    for (name, init) in data["root"]["state_variables"]
+        x = first_stage["vars"][first_stage["state_variables"][name]["in"]]
+        fix(x, init["initial_value"]; force = true)
     end
     first_stage["theta"] = @variable(first_stage["prob"], -1e6 <= theta <= 1e6)
     set_objective_function(
@@ -120,6 +123,12 @@ function benders(first_stage, second_stage, iteration_limit = 20)
     return bounds
 end
 
+function validate(filename)
+    schema = JSONSchema.Schema(JSON.parsefile("../sof.schema.json"))
+    return JSONSchema.validate(JSON.parsefile(filename), schema)
+end
+
+validate("news_vendor.sof.json")
 first_stage, second_stage = load_two_stage_problem("news_vendor.sof.json")
 ret = benders(first_stage, second_stage)
 
