@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/schema#",
-    "$id": "http://odow.github.io/SDDP.jl/sof.schema.json",
+    "$id": "https://odow.github.io/StochOptFormat/sof.schema.json",
     "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
     "required": ["version", "root", "nodes", "edges"],
@@ -139,7 +139,7 @@
                 },
                 "subproblem": {
                     "description": "The basic subproblem in MathOptFormat.",
-                    "$ref": "mof.schema.json"
+                    "$ref": "https://odow.github.io/StochOptFormat/mof.schema.json"
                 },
                 "noise_terms": {
                     "type": "array",
@@ -153,18 +153,9 @@
                                 "maximum": 1
                             },
                             "support": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "required": ["random_variable", "value"],
-                                    "properties": {
-                                        "parameter": {
-                                            "type": "string"
-                                        },
-                                        "value": {
-                                            "type": "number"
-                                        }
-                                    }
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "number"
                                 }
                             }
                         }

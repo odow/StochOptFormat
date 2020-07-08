@@ -166,12 +166,14 @@ print(ret)
 
 import jsonschema
 
-with open('news_vendor.sof.json', 'r') as io:
+def parsefile(filename):
+    with open(filename, 'r') as io:
         data = json.load(io)
+    return data
 
-with open('../sof.schema.json', 'r') as io:
-        schema = json.load(io)
-
-jsonschema.validate(
-    instance = data, schema = schema
-)
+sof = parsefile('../sof.schema.json')
+mof = parsefile('../mof.schema.json')
+resolver = jsonschema.RefResolver.from_schema(mof)
+validator = jsonschema.Draft7Validator(sof, resolver = resolver)
+instance = parsefile('news_vendor.sof.json')
+validator.validate(instance)
