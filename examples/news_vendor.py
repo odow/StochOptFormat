@@ -8,11 +8,11 @@ import json
 import math
 from pulp import *
 
-def mathoptformat_to_pulp(node):
+def mathoptformat_to_pulp(node, name):
     sp = node['subproblem']
     # Create the problem
     sense = LpMaximize if sp['objective']['sense'] == 'max' else LpMinimize
-    prob = LpProblem(node['name'], sense)
+    prob = LpProblem(name, sense)
     # Initialize the variables
     vars = {}
     for x in sp['variables']:
@@ -68,37 +68,41 @@ def mathoptformat_to_pulp(node):
     return {
         'prob': prob,
         'vars': vars,
-        'states': node['states'],
+        'state_variables': node['state_variables'],
         'noise_term': noise_terms,
     }
 
 def solve_second_stage(node, state, noise):
-    for s in node['states']:
+    for (name, s) in node['state_variables'].items():
         v = node['vars'][s['in']]
-        v.lowBound = state[s['name']]
-        v.upBound = state[s['name']]
-    for w in noise:
-        p = node['vars'][w['parameter']]
-        p.lowBound = w['value']
-        p.upBound = w['value']
+        v.lowBound = state[name]
+        v.upBound = state[name]
+    for (name, w) in noise.items():
+        p = node['vars'][name]
+        p.lowBound = w
+        p.upBound = w
     node['prob'].solve()
     return {
         'objective': value(node['prob'].objective),
         'pi': {
-            s['name']: node['vars'][s['in']].dj
-            for s in node['states']
+            name: node['vars'][s['in']].dj
+            for (name, s) in node['state_variables'].items()
         }
     }
 
 def solve_first_stage(node):
     node['prob'].solve()
-    return {s['name']: node['vars'][s['out']].varValue for s in node['states']}
+    return {
+        name: node['vars'][s['out']].varValue
+        for (name, s) in node['state_variables'].items()
+    }
 
 def add_cut(first_stage, x, ret):
     cut_term = lpSum(
-        p * r['objective'] + p * lpSum(
-            r['pi'][s['name']] * (first_stage['vars'][s['out']] - x[s['name']])
-            for s in first_stage['states']
+        p * r['objective'] +
+        p * lpSum(
+            r['pi'][name] * (first_stage['vars'][s['out']] - x[name])
+            for (name, s) in first_stage['state_variables'].items()
         )
         for (p, r) in ret
     )
@@ -114,9 +118,10 @@ def load_two_stage_problem(filename):
     assert(data['version']['minor'] == 1)
     assert(len(data['nodes']) == 2)
     assert(len(data['edges']) == 2)
-    nodes = {}
-    for node in data['nodes']:
-        nodes[node['name']] = mathoptformat_to_pulp(node)
+    nodes = {
+        name: mathoptformat_to_pulp(node, name)
+        for (name, node) in data['nodes'].items()
+    }
     first_stage, second_stage = None, None
     for edge in data['edges']:
         if edge['from'] == data['root']['name']:
@@ -124,12 +129,10 @@ def load_two_stage_problem(filename):
         else:
             second_stage = nodes[edge['to']]
 
-    for s in data['root']['states']:
-        for st in first_stage['states']:
-            if s['name'] == st['name']:
-                x = first_stage['vars'][st['in']]
-                x.lowBound = s['initial_value']
-                x.upBound = s['initial_value']
+    for (name, init) in data['root']['state_variables'].items():
+        x = first_stage['vars'][first_stage['state_variables'][name]['in']]
+        x.lowBound = init['initial_value']
+        x.upBound = init['initial_value']
     first_stage['theta'] = LpVariable("theta", -10**6, 10**6)
     first_stage['prob'].objective += first_stage['theta']
     return first_stage, second_stage
@@ -158,3 +161,17 @@ ret = benders(first_stage, second_stage)
 # Check solution!
 x = solve_first_stage(first_stage)
 assert(x['x'] == 10)
+print(ret)
+
+
+import jsonschema
+
+with open('news_vendor.sof.json', 'r') as io:
+        data = json.load(io)
+
+with open('../sof.schema.json', 'r') as io:
+        schema = json.load(io)
+
+jsonschema.validate(
+    instance = data, schema = schema
+)

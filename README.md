@@ -1,8 +1,9 @@
 # StochOptFormat
 
 This repository describes a file-format for stochastic optimization problems
-called _StochOptFormat_ with the file extension `.sof.json`. For convenience,
-we often refer to StochOptFormat as SOF.
+called _StochOptFormat_ with the file extension `.sof.json`.
+
+For convenience, we often refer to StochOptFormat as _SOF_.
 
 **Maintainers**
 
@@ -19,7 +20,8 @@ SOF is based on two recently developed concepts:
 - The _Policy Graph_ decomposition of a multistage stochastic program [1].
 - _MathOptFormat_, a file format for mathematical optimization problems [2].
 
-**Do not read further without reading both papers first.**
+**Do not read further without reading sections 1, 2, and 3 of [1] and sections
+1, 2, and 5 of [2].**
 
 ## Example
 
@@ -55,82 +57,84 @@ Encoded in StochOptFormat, this example becomes:
   "description": "An SOF implementation of the classical two-stage newsvendor problem.",
   "root": {
     "name": "root",
-    "states": [{"name": "x", "initial_value": 0}]
-  },
-  "nodes": [{
-    "name": "first_stage",
-    "states": [
-      {"name": "x", "in": "x_in", "out": "x_out"}
-    ],
-    "parameters": [],
-    "subproblem": {
-      "version": {"major": 0, "minor": 4},
-      "variables": [{"name": "x_in"}, {"name": "x_out"}],
-      "objective": {
-        "sense": "max",
-        "function": {
-          "head": "ScalarAffineFunction",
-          "terms": [{"variable": "x_out", "coefficient": -1}],
-          "constant": 0
-        }
-      },
-      "constraints": [{
-        "function": {"head": "SingleVariable", "variable": "x_out"},
-        "set": {"head": "GreaterThan", "lower": 0}
-      }]
+    "state_variables": {
+      "x": {"initial_value": 0.0}
     }
-  }, {
-    "name": "second_stage",
-    "states": [
-      {"name": "x", "in": "x_in", "out": "x_out"}
-    ],
-    "parameters": [
-      {"name": "d"}
-    ],
-    "subproblem": {
-      "version": {"major": 0, "minor": 4},
-      "variables": [
-        {"name": "x_in"}, {"name": "x_out"}, {"name": "u"}, {"name": "d"}
-      ],
-      "objective": {
-        "sense": "max",
-        "function": {
-          "head": "ScalarAffineFunction",
-          "terms": [{"variable": "u", "coefficient": 1.5}],
-          "constant": 0
-        }
+  },
+  "nodes": {
+    "first_stage": {
+      "state_variables": {
+        "x": {"in": "x_in", "out": "x_out"}
       },
-      "constraints": [{
-        "function": {
-          "head": "ScalarAffineFunction",
-          "terms": [
-            {"variable": "u", "coefficient": 1},
-            {"variable": "x_in", "coefficient": -1}
-          ],
-          "constant": 0
+      "random_variables": {},
+      "subproblem": {
+        "version": {"major": 0, "minor": 4},
+        "variables": [{"name": "x_in"}, {"name": "x_out"}],
+        "objective": {
+          "sense": "max",
+          "function": {
+            "head": "ScalarAffineFunction",
+            "terms": [{"variable": "x_out", "coefficient": -1.0}],
+            "constant": 0.0
+          }
         },
-        "set": {"head": "LessThan", "upper": 0}
-      }, {
-        "function": {
-          "head": "ScalarAffineFunction",
-          "terms": [
-            {"variable": "u", "coefficient": 1},
-            {"variable": "d", "coefficient": -1}
-          ],
-          "constant": 0
-        },
-        "set": {"head": "LessThan", "upper": 0}
-      }, {
-        "function": {"head": "SingleVariable", "variable": "u"},
-        "set": {"head": "GreaterThan", "lower": 0}
-      }]
+        "constraints": [{
+          "function": {"head": "SingleVariable", "variable": "x_out"},
+          "set": {"head": "GreaterThan", "lower": 0.0}
+        }]
+      }
     },
-    "noise_terms": [{
-      "probability": 0.4, "support": [{"parameter": "d", "value": 10}]
-    }, {
-      "probability": 0.6, "support": [{"parameter": "d", "value": 14}]
-    }]
-  }],
+    "second_stage": {
+      "state_variables": {
+        "x": {"in": "x_in", "out": "x_out"}
+      },
+      "random_variables": {
+        "d": {}
+      },
+      "subproblem": {
+        "version": {"major": 0, "minor": 4},
+        "variables": [
+          {"name": "x_in"}, {"name": "x_out"}, {"name": "u"}, {"name": "d"}
+        ],
+        "objective": {
+          "sense": "max",
+          "function": {
+            "head": "ScalarAffineFunction",
+            "terms": [{"variable": "u", "coefficient": 1.5}],
+            "constant": 0.0
+          }
+        },
+        "constraints": [{
+          "function": {
+            "head": "ScalarAffineFunction",
+            "terms": [
+              {"variable": "u", "coefficient": 1.0},
+              {"variable": "x_in", "coefficient": -1.0}
+            ],
+            "constant": 0.0
+          },
+          "set": {"head": "LessThan", "upper": 0.0}
+        }, {
+          "function": {
+            "head": "ScalarAffineFunction",
+            "terms": [
+              {"variable": "u", "coefficient": 1.0},
+              {"variable": "d", "coefficient": -1.0}
+            ],
+            "constant": 0.0
+          },
+          "set": {"head": "LessThan", "upper": 0.0}
+        }, {
+          "function": {"head": "SingleVariable", "variable": "u"},
+          "set": {"head": "GreaterThan", "lower": 0.0}
+        }]
+      },
+      "noise_terms": [
+        {"probability": 0.4, "support": {"d": 10.0}},
+        {"probability": 0.6, "support": {"d": 14.0}}
+      ]
+    }
+  },
   "edges": [
     {"from": "root", "to": "first_stage", "probability": 1.0},
     {"from": "first_stage", "to": "second_stage", "probability": 1.0}
@@ -243,11 +247,12 @@ keys at the top-level.
   sequence of edges. Of those things, only the list of edges would be
   superfluous in a purely T-stage format. So, for the sake of a list of objects
   like `{"from": "1", "to": "2", "probability": 1}`, we get a format that
-  trivially extends to infinite horizon problems and problems with a stochastic process that is not stagewise independent.
+  trivially extends to infinite horizon problems and problems with a stochastic
+  process that is not stagewise independent.
 
 - Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
 
-  A: Go read the literature review in the MOI paper [1].
+  A: Please read Section 2 of [2].
 
 - Q: You don't expect me to write these by hand do you?
 
@@ -270,12 +275,12 @@ keys at the top-level.
 
 - Q: My stochastic process is not stagewise-independent.
 
-  A: Two options: expand the state-space, or create a scenario tree. Go read
-  [1].
+  A: Two options: expand the state-space, or create a scenario tree. For more
+  information, read Sections 1, 2, and 3 of [1].
 
 - Q: I don't like JSON.
 
-  A: Open an issue with a better idea. JSON is universal support in every major
+  A: We're open to better ideas. JSON is universal support in every major
   programming language, and is human-readable(-ish).
 
 - Q: JSON seems too verbose.
@@ -298,10 +303,10 @@ keys at the top-level.
 
 - Q: Follow up to the previous. I want to have `parameter * x * y`.
 
-  A: Do you? Changing the quadratic coefficient matrices in solvers is slow, and
-  doing so could easily make the problem non-convex. If you really want to, you
-  could add a slack variable (and equality constraint) `z == parameter * x`, and
-  then use `z * y`.
+  A: Changing the quadratic coefficient matrices in solvers is slow, and doing
+  so could easily make the problem non-convex. If you really want to, you could
+  add a slack variable (and equality constraint) `z == parameter * x`, and then
+  use `z * y`.
 
 - Q: Why haven't you written an interface to ⟨INSERT LANGUAGE HERE⟩ yet?
 
@@ -312,9 +317,9 @@ keys at the top-level.
 [1] Dowson, O. (2020). The policy graph decomposition of multistage stochastic
   programming problems. Networks, 71(1), 3-23.
   doi: https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932
-  [preprint](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)
+  [[preprint]](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)
 
 [2] Legat, B., Dowson, O., Garcia, J.D., Lubin, M. (2020). MathOptInterface: a
   data structure for mathematical optimization problems.
-  [preprint](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
-  [repository](https://github.com/jump-dev/MathOptFormat)
+  [[preprint]](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
+  [[repository]](https://github.com/jump-dev/MathOptFormat)

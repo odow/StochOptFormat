@@ -33,23 +33,19 @@
         "root": {
             "description": "An object for the root node.",
             "type": "object",
-            "required": ["name", "states"],
+            "required": ["name", "state_variables"],
             "properties": {
                 "name": {
                     "description": "The name of the root node, to be used in `edges`.",
                     "type": "string"
                 },
-                "states": {
+                "state_variables": {
                     "description": "A vector of state variables.",
-                    "type": "array",
-                    "items": {
+                    "type": "object",
+                    "additionalProperties": {
                         "type": "object",
-                        "required": ["name", "initial_value"],
+                        "required": ["initial_value"],
                         "properties": {
-                            "name": {
-                                "description": "A unique name for the state variable.",
-                                "type": "string"
-                            },
                             "initial_value": {
                                 "description": "The value of the state variable at the root node.",
                                 "type": "number"
@@ -60,9 +56,9 @@
             }
         },
         "nodes": {
-            "description": "An array of nodes in the policy graph.",
-            "type": "array",
-            "items": {
+            "description": "An object containing the nodes in the policy graph.",
+            "type": "object",
+            "additionalProperties": {
                 "$ref": "#/definitions/node"
             }
         },
@@ -85,17 +81,9 @@
                         "type": "string"
                     },
                     "support": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "string"
-                                },
-                                "value": {
-                                    "type": "number"
-                                }
-                            }
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "number"
                         }
                     }
                 }
@@ -124,26 +112,15 @@
         "node": {
             "description": "An node in the policy graph.",
             "type": "object",
-            "required": ["name", "states", "parameters", "subproblem"],
+            "required": ["state_variables", "random_variables", "subproblem"],
             "properties": {
-                "name": {
-                    "description": "A unique name for the node, to use used in `edges`.",
-                    "type": "string"
-                },
-                "subproblem": {
-                    "description": "The basic subproblem in MathOptFormat.",
-                    "$ref": "https://github.com/odow/MathOptFormat/blob/v0.4.0/mof.schema.json"
-                },
-                "states": {
-                    "description": "An array of objects that map the name of the state variable to the incoming and outgoing state variables in the MathOptFormat file.",
-                    "type": "array",
-                    "items": {
+                "state_variables": {
+                    "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the MathOptFormat file.",
+                    "type": "object",
+                    "additionalProperties": {
                         "type": "object",
-                        "required": ["name", "in", "out"],
+                        "required": ["in", "out"],
                         "properties": {
-                            "name": {
-                                "type": "string"
-                            },
                             "in": {
                                 "type": "string"
                             },
@@ -153,18 +130,16 @@
                         }
                     }
                 },
-                "parameters": {
-                    "description": "An array of objects that map the name of a parameter to the variable in the MathOptFormat file.",
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["name"],
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            }
-                        }
+                "random_variables": {
+                    "description": "An array of objects that map the name of a random variable to the variable in the MathOptFormat file.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object"
                     }
+                },
+                "subproblem": {
+                    "description": "The basic subproblem in MathOptFormat.",
+                    "$ref": "mof.schema.json"
                 },
                 "noise_terms": {
                     "type": "array",
@@ -181,7 +156,7 @@
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "required": ["parameter", "value"],
+                                    "required": ["random_variable", "value"],
                                     "properties": {
                                         "parameter": {
                                             "type": "string"
