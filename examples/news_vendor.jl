@@ -23,7 +23,7 @@ function mathoptformat_to_jump(node)
         "prob" => jmp,
         "vars" => Dict(name(v) => v for v in all_variables(jmp)),
         "state_variables" => node["state_variables"],
-        "noise_term" => get(node, "noise_terms", Any[])
+        "noise_terms" => node["noise_terms"],
     )
 end
 
@@ -110,7 +110,7 @@ function benders(first_stage, second_stage, iteration_limit = 20)
         ret = [(
             noise["probability"],
             solve_second_stage(second_stage, x, noise["support"])
-        ) for noise in second_stage["noise_term"]]
+        ) for noise in second_stage["noise_terms"]]
         stat_bound = det_bound - value(first_stage["theta"]) + sum(
             p * r["objective"] for (p, r) in ret
         )

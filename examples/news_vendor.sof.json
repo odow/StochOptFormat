@@ -1,8 +1,8 @@
 {
-  "version": {"major": 0, "minor": 1},
   "author": "Oscar Dowson",
-  "name": "Two-stage newsvendor",
+  "name": "newsvendor",
   "description": "An SOF implementation of the classical two-stage newsvendor problem.",
+  "version": {"major": 0, "minor": 1},
   "root": {
     "name": "root",
     "state_variables": {
@@ -14,7 +14,7 @@
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
-      "random_variables": {},
+      "random_variables": [],
       "subproblem": {
         "version": {"major": 0, "minor": 4},
         "variables": [{"name": "x_in"}, {"name": "x_out"}],
@@ -30,15 +30,14 @@
           "function": {"head": "SingleVariable", "variable": "x_out"},
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
-      }
+      },
+      "noise_terms": []
     },
     "second_stage": {
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
-      "random_variables": {
-        "d": {}
-      },
+      "random_variables": ["d"],
       "subproblem": {
         "version": {"major": 0, "minor": 4},
         "variables": [
@@ -86,5 +85,17 @@
   "edges": [
     {"from": "root", "to": "first_stage", "probability": 1.0},
     {"from": "first_stage", "to": "second_stage", "probability": 1.0}
+  ],
+  "test_scenarios": [
+    [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 10.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 14.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 9.0}}
+    ]
   ]
 }

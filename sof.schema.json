@@ -70,12 +70,13 @@
             }
         }
     },
-    "test_data": {
+    "test_scenarios": {
         "type": "array",
         "items": {
             "type": "array",
             "items": {
                 "type": "object",
+                "required": ["node", "support"],
                 "properties": {
                     "node": {
                         "type": "string"
@@ -112,7 +113,9 @@
         "node": {
             "description": "An node in the policy graph.",
             "type": "object",
-            "required": ["state_variables", "random_variables", "subproblem"],
+            "required": [
+                "state_variables", "random_variables", "subproblem", "noise_terms"
+            ],
             "properties": {
                 "state_variables": {
                     "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the MathOptFormat file.",
@@ -131,10 +134,10 @@
                     }
                 },
                 "random_variables": {
-                    "description": "An array of objects that map the name of a random variable to the variable in the MathOptFormat file.",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "object"
+                    "description": "An array containing the names of the random variables in the subproblem.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 },
                 "subproblem": {

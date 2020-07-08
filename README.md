@@ -51,10 +51,10 @@ and the second-stage is:
 Encoded in StochOptFormat, this example becomes:
 ```json
 {
-  "version": {"major": 0, "minor": 1},
   "author": "Oscar Dowson",
-  "name": "Two-stage newsvendor",
+  "name": "newsvendor",
   "description": "An SOF implementation of the classical two-stage newsvendor problem.",
+  "version": {"major": 0, "minor": 1},
   "root": {
     "name": "root",
     "state_variables": {
@@ -66,7 +66,7 @@ Encoded in StochOptFormat, this example becomes:
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
-      "random_variables": {},
+      "random_variables": [],
       "subproblem": {
         "version": {"major": 0, "minor": 4},
         "variables": [{"name": "x_in"}, {"name": "x_out"}],
@@ -82,15 +82,14 @@ Encoded in StochOptFormat, this example becomes:
           "function": {"head": "SingleVariable", "variable": "x_out"},
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
-      }
+      },
+      "noise_terms": []
     },
     "second_stage": {
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
-      "random_variables": {
-        "d": {}
-      },
+      "random_variables": ["d"],
       "subproblem": {
         "version": {"major": 0, "minor": 4},
         "variables": [
@@ -138,104 +137,141 @@ Encoded in StochOptFormat, this example becomes:
   "edges": [
     {"from": "root", "to": "first_stage", "probability": 1.0},
     {"from": "first_stage", "to": "second_stage", "probability": 1.0}
+  ],
+  "test_scenarios": [
+    [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 10.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 14.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 9.0}}
+    ]
   ]
 }
 ```
 
 ### Explanation
 
-SOF is a JSON document. The model is stored as a single JSON object. JSON
-objects are key-value mappings enclused by curly braces. There are four required
-keys at the top-level.
+SOF is a JSON document. The problem is stored as a single JSON object. JSON
+objects are key-value mappings enclused by curly braces.
 
-- `version`
+The file begins with three self-explanatory optional metadata fields:
+`name::String`, `author::String`, and `description::String`.
+
+Note: In the following, `name::String` means that the key of an object is `name`
+and the value should be of type `String`. `::List{Object}` means that the type
+is a `List`, and elements of the list are `Object`s.
+
+Then, there are four required keys:
+
+- `version::Object`
 
   An object describing the minimum version of MathOptFormat needed to parse
   the file. This is included to safeguard against later revisions. It contains
   two keys: `major` and `minor`. These keys should be interpreted using
   [SemVer](https://semver.org).
 
-- `root`
+- `root::Object`
 
   An object describing the root node of the policy graph. It has two required
   keys:
 
-  - `name`
+  - `name::String`
 
     A unique string name for the root node to distinguish it from other nodes.
 
-  - `states`
+  - `state_variables::Object`
 
-    A list of objects describing the state variables in the model. Each element
-    is an object with two required keys:
+    An object describing the state variables in the problem. Each key is the
+    unique name of a state variable. The value is an object with one required
+    key:
 
-    - `name`
-
-      A unique string name for the state variable.
-
-    - `initial_value`
+    - `initial_value::Number`
 
       The value of the state variable at the root node.
 
-- `nodes`
+- `nodes::Object`
 
-  A list of objects with one element for each node in the policy graph. Each
-  node has four required keys:
+  An object mapping the name of each node of the policy graph (excluding the
+  root node) to an object describing the node. Each object has four required
+  keys:
 
-  - `name`
+  - `state_variables::Object`
 
-    A unique string name for the node to distinguish it from other nodes.
+    An object that maps the name of each state variable (as defined in the root
+    node) to an object describing the incoming and outgoing state variables in
+    the subproblem. Each object has two required keys:
 
-  - `states`
-
-    A list of objects to map the states to the variables inside the
-    subproblem. Each object has three required keys:
-
-    - `name`
-
-      The name of the state variable as defined in the root node.
-
-    - `in`
+    - `in::String`
 
       The name of the variable representing the incoming state variable in the
       subproblem.
 
-    - `out`
+    - `out::String`
 
       The name of the variable representing the outgoing state variable in the
       subproblem.
 
-  - `parameters`
+  - `random_variables::List{String}`
 
-    A list of objects describing the parameters in the model. Each element
-    is an object with one required key:
+    A list of strings describing the name of each random variable in the
+    subproblem.
 
-    - `name`
-
-    Within the subproblem, parameters are represented by decision variables.
-    This `name` is the name of a decision variable in `subproblem` that should
-    be interpreted as a parameter.
-
-  - `subproblem`
+  - `subproblem::Object`
 
     The subproblem corresponding to the node as a MathOptFormat object.
 
-- `edges`
+  - `noise_terms::List{Object}`
+
+    A list of objects describing the finite discrete realizations of the stagewise-independent noise term in each node. Each object has two required keys:
+
+    - `probability::Number`
+
+      The nominal probability of each realization.
+
+    - `support::Object`
+
+      An object describing the support corresponding to the realization. The
+      keys of the object are the random variables declared in
+      `random_variables`, and the values are the value of the random variable in
+      that realization.
+
+- `edges::List{Object}`
 
   A list of objects with one element for each edge in the policy graph. Each
   object has three required keys:
 
-  - `from`
+  - `from::String`
 
     The name of the node that the edge exits.
 
-  - `to`
+  - `to::String`
 
     The name of the node that the edge enters. This cannot be the root node.
 
-  - `probability`
+  - `probability::Number`
 
     The nominal probability of transitioning from node `from` to node `to`.
+
+In addition to the required fields, there is an additional field,
+`test_scenarios::List{List{Object}}`, that is used for evaluating the
+performance of a policy.
+
+`test_scenarios` is a list, containing one element for each scenario in the test
+set. Each scenario is a list of objects. Each object has two required nodes:
+`node::String` and `support::Object`. `node` is the name of the node to visit,
+and `support` is the realization of the random variable at that node. Note that
+`support` may be an _out-of-sample_ realization, that is, one which is not
+contained in the corresponding `noise_terms` field of the node. Testing a policy
+is a larger topic, so we expand on it in the section
+[Evaluating the policy](#evaluating-the-policy).
+
+## Evaluating the policy
+
+TODO
 
 ## FAQ
 
@@ -285,14 +321,9 @@ keys at the top-level.
 
 - Q: JSON seems too verbose.
 
-  A: JSON files compress well. For example, for models in the MIPLIB 2017
+  A: JSON files compress well. For example, for problems in the MIPLIB 2017
   benchmark set, compressed MathOptFormat files are only 37% larger than their
   compressed MPS equivalents.
-
-- Q: Why isn't `parameters` a list of strings?
-
-  A: So we have the option to add additional fields (e.g., a default) in the
-  future in a backwards compatible way.
 
 - Q: I want the uncertainty to be an objective/constraint coefficient.
 
