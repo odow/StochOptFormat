@@ -1,27 +1,75 @@
-# StochOptFormat
+# StochOptFormat: a novel data structure for multistage stochastic programming
 
-This repository describes a file-format for stochastic optimization problems
-called _StochOptFormat_ with the file extension `.sof.json`.
+This repository describes a data structure and file-format for stochastic
+optimization problems called _StochOptFormat_, with the file extension
+`.sof.json`.
 
 For convenience, we often refer to StochOptFormat as _SOF_.
 
-**Maintainers**
+**Authors**
 
-- Oscar Dowson (Northwestern)
-- Joaquim Garcia (PSR-Inc, PUC-Rio)
+- [Oscar Dowson](http://github.com/odow) (Northwestern)
+- [Joaquim Garcia](http://github.com/joaquimg) (PSR-Inc, PUC-Rio)
 
-_Note: this file format is in development. Things may change! If you have
+_Note: StochOptFormat is in development. Things may change! If you have
 suggestions or comments, please open an issue._
 
-## Preliminaries
+## Motivation and design principles
 
-SOF is based on two recently developed concepts:
+Libraries of benchmark instances have been instrumental in driving progress in
+many areas of optimization. In stochastic programming, some effort has been made
+on this front (see, e.g., https://www.stoprog.org/resources). However, the
+predominant file format for these problems, SMPS, does not scale to the types of
+problems we want to solve (large multistage stochastic programs), nor does it
+permit the variety of problem classes we want to study (e.g., stochastic conic
+programs).
 
-- The _Policy Graph_ decomposition of a multistage stochastic program [1].
-- _MathOptFormat_, a file format for mathematical optimization problems [2].
+Over the last 4 years, we (and the broader JuMP team) have set about reimagining
+how we formulate single period deterministic optimziation problems. The result
+is a novel data structure for optimization called MathOptInterface [2]. In
+addition, we have also set about standardizing how we formulate multistage
+stochastic programming problems. The result is a natural decomposition of the
+problem into the _policy graph_ [1].
 
-**Do not read further without reading sections 1, 2, and 3 of [1] and sections
-1, 2, and 5 of [2].**
+**We highly recommend that you do not read further without reading (at minimum)
+sections 1, 2, and 3 of [1] and sections 1, 2, and 5 of [2].**
+
+These two workstreams are synergistic with each other. We can use the policy
+graph to describe the high-level structure of a stochastic program, and we can
+use MathOptInterface to describe the low-level optimization problem faced by the
+agent within each stage (really, node of the policy graph). Putting these two
+concepts together leads to a natural data structure for multistage stochastic
+programs. StochOptFormat is a serialization of this data structure into the JSON
+file format.
+
+StochOptFormat is inspired by our work on [JuMP](https://jump.dev) and
+[SDDP.jl](https://odow.github.io/SDDP.jl/latext). However, it is not exclusive
+to Julia or stochastic dual dynamic programming. For example, this format makes
+it possible to read in multistage stochastic programming problems into Python
+and solve them with progressive hedging. We have not done so yet because this is
+not our area of expertise.
+
+In creating StochOptFormat, we wanted to achieve the following:
+
+- We wanted a format that is able to scale to problems with hundreds of
+  decision periods, state variables, and control variables.
+- We wanted a format that was rigidly defined by a schema, so that files could
+  be validated for syntactic correctness.
+- We wanted a format that was not restricted to linear programming. We want to
+  add cones and integrality.
+- We wanted a format based on the policy graph. Doing so allows us to represent
+  a very large class of problem structures, including finite and infinite
+  horizon problems, problems with linear stagewise independence, problems with
+  Markovian structure, and problems represented by an arbitrary scenario tree.
+- We wanted a well-defined notion of what a solution to a stochastic program is.
+  (Spoiler alert: it is not the first stage decision. See
+  [Evaluating the policy](#evaluating-the-policy).)
+
+Equally important as the things that we set out to do, is the things that we did
+_not_ set out to do.
+
+  - We did not try to incorporate chance constraints.
+  - We did not try to incorporate continuous random variables.
 
 ## Example
 
@@ -34,6 +82,66 @@ stage, the uncertain demand of `d` newspapers is realized, and the agent sells
 `u` newspapers at a price of \$1.50/newspaper, with the constraint that
 `u = min{x, d}`. The demand is a either 10 units with probability 0.4, or 14
 units with probability 0.6.
+
+### Vocabulary
+
+StochOptFormat relies of a specific set of vocabulary. We summarize the
+important terms here, and we direct the reader to [1] for more information.
+
+1. Nodes
+
+  A policy graph is made up of nodes. Each node correspond to a point in time
+  at which the agent makes a decision.
+
+  In our example, there are two nodes: `first_stage` and `second_stage`.
+
+  For convenience, we also introduce a `root` node, which is not a node at which
+  the agent makes a decision, but is just used as a marker for where the agent
+  first enters the sequential decision making process. The root node stores the
+  initial value for each state variable (see below).
+
+2. Edges
+
+  Edges connect two nodes in the policy graph. Each edge has a `from` node, a
+  `to` node, and a `probability` of transitioning along the edge. Note that the
+  sum of probabilities along outgoing edges of a node does not have to sum to 1.
+  This allows, for example, discount factors in cyclic graphs and nodes with no
+  children. See [1] for more details.
+
+  In our example, there are two edges.
+    1. `root` to `first_stage` with probability 1
+    2. `first_stage` to `second_stage` with probability 1
+
+3. State variables
+
+  State variables are the information in the problem that flows between two
+  nodes along an edge. In each node, each stage variable is associated with an
+  _incoming_ state variable and an _outgoing_ state variable.
+
+  In our example, there is one state variable, `x`, the number of newspapers
+  purchased in the first stage. The _incoming_ state variable of `first_stage`
+  represents the initial stock on hand, the _outgoing_ state variable of the
+  `first_stage` is equivalent to the _incoming_ state variable of the
+  `second_stage`, and the outgoing state variable of the `second_stage` is the
+  quantity of unsold newspapers at the end of the second stage.
+
+4. Random variables
+
+  Random variables are local to a node, and are assumed to be independent of the
+  incoming state variable and the realization of any prior random variables.
+  Some nodes may not have any random variables. If so, we say that the node is
+  deterministic.
+
+  In our example, the `first_stage` is deterministic, and the `second_stage`
+  node has one random variable, `d`, the demand.
+
+5. Control variables
+
+  Control variables are decisions taken by the agent within a node. They remain
+  local to the node, and their values are not need by the agent in future nodes
+  to make a decision.
+
+5. Subproblem
 
 The first-stage subproblem is:
 ```
@@ -48,7 +156,9 @@ and the second-stage is:
                   u         >= 0.
 ```
 
-Encoded in StochOptFormat, this example becomes:
+### Problem in StochOptFormat
+
+Encoded in StochOptFormat, the newsvendor problem becomes:
 ```json
 {
   "author": "Oscar Dowson",
