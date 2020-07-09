@@ -73,8 +73,9 @@ _not_ set out to do.
 
 ## Example
 
-There are alot of concepts to unpack in SOF. We present a simple example first,
-and then explain each section in detail.
+There are alot of concepts to unpack in SOF. We present a two-stage stochastic
+linear program example first, and then explain each section of the corresponding
+SOF file in detail.
 
 Consider a two-stage newsvendor problem. In the first stage, the agent chooses
 `x`, the number of newspapers to buy at a cost \$1/newspaper. In the second
@@ -85,10 +86,12 @@ units with probability 0.6.
 
 ### Vocabulary
 
-StochOptFormat relies of a specific set of vocabulary. We summarize the
-important terms here, and we direct the reader to [1] for more information.
+Here we briefly summarize the important terms used by StochOptFormat; we direct
+the reader to [1] for more information. Note that some of our terms differ
+slightly from [1]. The act of formalizing a data structure has clarified some of
+our earlier ideas.
 
-1. Nodes
+- Nodes
 
   A policy graph is made up of nodes. Each node correspond to a point in time
   at which the agent makes a decision.
@@ -100,7 +103,7 @@ important terms here, and we direct the reader to [1] for more information.
   first enters the sequential decision making process. The root node stores the
   initial value for each state variable (see below).
 
-2. Edges
+- Edges
 
   Edges connect two nodes in the policy graph. Each edge has a `from` node, a
   `to` node, and a `probability` of transitioning along the edge. Note that the
@@ -112,7 +115,7 @@ important terms here, and we direct the reader to [1] for more information.
     1. `root` to `first_stage` with probability 1
     2. `first_stage` to `second_stage` with probability 1
 
-3. State variables
+- State variables
 
   State variables are the information in the problem that flows between two
   nodes along an edge. In each node, each stage variable is associated with an
@@ -125,7 +128,7 @@ important terms here, and we direct the reader to [1] for more information.
   `second_stage`, and the outgoing state variable of the `second_stage` is the
   quantity of unsold newspapers at the end of the second stage.
 
-4. Random variables
+- Random variables
 
   Random variables are local to a node, and are assumed to be independent of the
   incoming state variable and the realization of any prior random variables.
@@ -135,26 +138,43 @@ important terms here, and we direct the reader to [1] for more information.
   In our example, the `first_stage` is deterministic, and the `second_stage`
   node has one random variable, `d`, the demand.
 
-5. Control variables
+- Control variables
 
   Control variables are decisions taken by the agent within a node. They remain
   local to the node, and their values are not need by the agent in future nodes
   to make a decision.
 
-5. Subproblem
+- Subproblem
 
-The first-stage subproblem is:
-```
-  V₀(x) = max: -1 * x′
-          s.t.      x′ >= 0,
-```
-and the second-stage is:
-```
-  V₁(x, d) = max: 1.5 * u
-             s.t. u - x     <= 0
-                  u     - d <= 0
-                  u         >= 0.
-```
+  In the policy graph paper [1], the dynamics of the systen with each node are
+  split into a transition function, a set of feasible controls, and a stage
+  objective. Rather than represent these directly in the file format, we find it
+  more convenient to combine these three things in an optimization problem we
+  refer to as the _subproblem_.
+
+  The subproblem explicitly excludes the cost-to-go terms, so it is _not_ an
+  explicit dynamic programming decomposition. Instead, it is just a structured
+  way of communicating the dynamics of each node.
+
+  In addition, incoming state variables, outgoing state variables, and random
+  variables are all represented by decision variables in the optimization
+  problem. This means that if a random variable is multiplied by a state or
+  control variable in a constraint or in the objective, it is represented in
+  the subproblem as a quadratic objective or constraint, even if the subproblem
+  is linear with the random variable fixed.
+
+  For our example, the first-stage subproblem is:
+  ```
+  max: -1 * x′
+  s.t.      x′ >= 0,
+  ```
+  and the second-stage subproblem is:
+  ```
+  max: 1.5 * u
+  s.t.       u - x     <= 0
+             u     - d <= 0
+             u         >= 0.
+  ```
 
 ### Problem in StochOptFormat
 
@@ -193,7 +213,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
       },
-      "noise_terms": []
+      "realizations": []
     },
     "second_stage": {
       "state_variables": {
@@ -238,7 +258,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
       },
-      "noise_terms": [
+      "realizations": [
         {"probability": 0.4, "support": {"d": 10.0}},
         {"probability": 0.6, "support": {"d": 14.0}}
       ]
@@ -334,7 +354,7 @@ Then, there are four required keys:
 
     The subproblem corresponding to the node as a MathOptFormat object.
 
-  - `noise_terms::List{Object}`
+  - `realizations::List{Object}`
 
     A list of objects describing the finite discrete realizations of the stagewise-independent noise term in each node. Each object has two required keys:
 
@@ -375,7 +395,7 @@ set. Each scenario is a list of objects. Each object has two required nodes:
 `node::String` and `support::Object`. `node` is the name of the node to visit,
 and `support` is the realization of the random variable at that node. Note that
 `support` may be an _out-of-sample_ realization, that is, one which is not
-contained in the corresponding `noise_terms` field of the node. Testing a policy
+contained in the corresponding `realizations` field of the node. Testing a policy
 is a larger topic, so we expand on it in the section
 [Evaluating the policy](#evaluating-the-policy).
 

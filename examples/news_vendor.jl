@@ -9,65 +9,88 @@ import Clp
 import JSON
 import JSONSchema
 
+"""
+    mathoptformat_to_jump(node)
+
+Convert a MathOptFormat model in `node["subproblem"]` into a JuMP equivalent
+using the Clp optimizer.
+"""
 function mathoptformat_to_jump(node)
+    # Read the problem into a MOI model first.
+    model = MOI.FileFormats.Model(format = MOI.FileFormats.FORMAT_MOF)
     io = IOBuffer()
     write(io, JSON.json(node["subproblem"]))
     seekstart(io)
-    model = MOI.FileFormats.Model(format = MOI.FileFormats.FORMAT_MOF)
     MOI.read!(io, model)
-    jmp = Model()
-    MOI.copy_to(jmp, model)
-    set_optimizer(jmp, Clp.Optimizer)
-    set_silent(jmp)
-    return Dict(
-        "prob" => jmp,
-        "vars" => Dict(name(v) => v for v in all_variables(jmp)),
-        "state_variables" => node["state_variables"],
-        "noise_terms" => node["noise_terms"],
+    # Then copy it to a JuMP model.
+    subproblem = Model(Clp.Optimizer)
+    MOI.copy_to(subproblem, model)
+    set_silent(subproblem)
+    node["subproblem"] = subproblem
+    return node
+end
+
+"""
+    solve_first_stage(node)
+
+Solve the first stage problem.
+"""
+function solve_first_stage(node)
+    sp = node["subproblem"]
+    optimize!(sp)
+    if termination_status(sp) != MOI.OPTIMAL
+        error("Unable to solve first stage to optimality!")
+    end
+    return (
+        obj = objective_value(sp),
+        x = Dict(
+            name => value(variable_by_name(sp, s["out"]))
+            for (name, s) in node["state_variables"]
+        ),
+        sol = Dict(name(x) => value(x) for x in all_variables(sp))
     )
 end
 
+"""
+    solve_second_stage(node, state, noise)
+"""
 function solve_second_stage(node, state, noise)
+    sp = node["subproblem"]
     for (name, s) in node["state_variables"]
-        fix(node["vars"][s["in"]], state[name]; force = true)
+        fix(variable_by_name(sp, s["in"]), state[name]; force = true)
     end
-    for (name, w) in noise
-        fix(node["vars"][name], w; force = true)
+    for (name, w) in noise["support"]
+        fix(variable_by_name(sp, name), w; force = true)
     end
-    optimize!(node["prob"])
+    optimize!(sp)
     return Dict(
-        "objective" => objective_value(node["prob"]),
+        "probability" => noise["probability"],
+        "objective" => objective_value(sp),
         "pi" => Dict(
-            name => shadow_price(FixRef(node["vars"][s["in"]]))
+            name => shadow_price(FixRef(variable_by_name(sp, s["in"])))
             for (name, s) in node["state_variables"]
         )
     )
 end
 
-function solve_first_stage(node)
-    optimize!(node["prob"])
-    return Dict(
-        name => value(node["vars"][s["out"]])
-        for (name, s) in node["state_variables"]
-    )
-end
-
-function add_cut(first_stage, x, ret)
+function add_cut(first_stage, x, ret_second)
+    sp = first_stage["subproblem"]
     cut_term = @expression(
-        first_stage["prob"],
+        sp,
         sum(
-            p * r["objective"] +
-            p * sum(
-                r["pi"][name] * (first_stage["vars"][s["out"]] - x[name])
-                for (name, s) in first_stage["state_variables"]
-            )
-            for (p, r) in ret
+            ret["probability"] * (
+                ret["objective"] +
+                sum(
+                    ret["pi"][name] * (variable_by_name(sp, s["out"]) - x[name])
+                    for (name, s) in first_stage["state_variables"]
+                )
+            ) for ret in ret_second
         )
     )
-    if objective_sense(first_stage["prob"]) == MOI.MAX_SENSE
-        @constraint(first_stage["prob"], first_stage["theta"] <= cut_term)
+    if objective_sense(sp) == MOI.MAX_SENSE
+        @constraint(sp, first_stage["theta"] <= cut_term)
     else
-        @constraint(first_stage["prob"], first_stage["theta"] >= cut_term)
+        @constraint(sp, first_stage["theta"] >= cut_term)
     end
     return
 end
@@ -79,8 +102,7 @@ function load_two_stage_problem(filename)
     @assert(length(data["nodes"]) == 2)
     @assert(length(data["edges"]) == 2)
     nodes = Dict(
-        name => mathoptformat_to_jump(node)
-        for (name, node) in data["nodes"]
+        name => mathoptformat_to_jump(node) for (name, node) in data["nodes"]
     )
     first_stage, second_stage = nothing, nothing
     for edge in data["edges"]
@@ -90,41 +112,40 @@ function load_two_stage_problem(filename)
             second_stage = nodes[edge["to"]]
         end
     end
+    sp = first_stage["subproblem"]
     for (name, init) in data["root"]["state_variables"]
-        x = first_stage["vars"][first_stage["state_variables"][name]["in"]]
+        x = variable_by_name(sp, first_stage["state_variables"][name]["in"])
         fix(x, init["initial_value"]; force = true)
     end
-    first_stage["theta"] = @variable(first_stage["prob"], -1e6 <= theta <= 1e6)
-    set_objective_function(
-        first_stage["prob"],
-        objective_function(first_stage["prob"]) + first_stage["theta"]
-    )
+    first_stage["theta"] = @variable(sp, -1e6 <= theta <= 1e6)
+    set_objective_function(sp, objective_function(sp) + first_stage["theta"])
     return first_stage, second_stage
 end
 
 function benders(first_stage, second_stage, iteration_limit = 20)
-    bounds = []
+    bounds = Tuple{Float64, Float64}[]
+    # Collect the names of the outgoing state variables in the first stage.
+    x_out = Set(s["out"] for s in values(first_stage["state_variables"]))
     for iter = 1:iteration_limit
-        x = solve_first_stage(first_stage)
-        det_bound = objective_value(first_stage["prob"])
-        ret = [(
-            noise["probability"],
-            solve_second_stage(second_stage, x, noise["support"])
-        ) for noise in second_stage["noise_terms"]]
-        stat_bound = det_bound - value(first_stage["theta"]) + sum(
-            p * r["objective"] for (p, r) in ret
-        )
-        add_cut(first_stage, x, ret)
-        push!(bounds, (det_bound, stat_bound))
-        if abs(det_bound - stat_bound) < 1e-6
+        # Forward pass. Solve the first stage problem.
+        ret_first = solve_first_stage(first_stage)
+        ret_second = [
+            solve_second_stage(second_stage, ret_first.x, noise)
+            for noise in second_stage["realizations"]
+        ]
+        stat_bound = ret_first.obj - value(first_stage["theta"]) +
+            sum(ret["probability"] * ret["objective"] for ret in ret_second)
+        add_cut(first_stage, ret_first.x, ret_second)
+        push!(bounds, (ret_first.obj, stat_bound))
+        if abs(ret_first.obj - stat_bound) < 1e-6
             break
         end
     end
-    return bounds
+    return bounds, solve_first_stage(first_stage)
 end
 
-function validate(filename)
-    schema = JSONSchema.Schema(JSON.parsefile("../sof.schema.json"))
+function validate(filename; schema_filename = "../sof.schema.json")
+    schema = JSONSchema.Schema(JSON.parsefile(schema_filename))
     return JSONSchema.validate(JSON.parsefile(filename), schema)
 end
 
@@ -133,5 +154,6 @@ first_stage, second_stage = load_two_stage_problem("news_vendor.sof.json")
 ret = benders(first_stage, second_stage)
 
 # Check solution!
-x = solve_first_stage(first_stage)
-@assert(x["x"] ≈ 10)
+ret = solve_first_stage(first_stage)
+@show ret
+@assert(ret.x["x"] ≈ 10)

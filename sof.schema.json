@@ -114,7 +114,7 @@
             "description": "An node in the policy graph.",
             "type": "object",
             "required": [
-                "state_variables", "random_variables", "subproblem", "noise_terms"
+                "state_variables", "random_variables", "subproblem", "realizations"
             ],
             "properties": {
                 "state_variables": {
@@ -144,7 +144,7 @@
                     "description": "The basic subproblem in MathOptFormat.",
                     "$ref": "https://odow.github.io/StochOptFormat/mof.schema.json"
                 },
-                "noise_terms": {
+                "realizations": {
                     "type": "array",
                     "items": {
                         "type": "object",

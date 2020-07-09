@@ -31,7 +31,7 @@
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
       },
-      "noise_terms": []
+      "realizations": []
     },
     "second_stage": {
       "state_variables": {
@@ -76,7 +76,7 @@
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
       },
-      "noise_terms": [
+      "realizations": [
         {"probability": 0.4, "support": {"d": 10.0}},
         {"probability": 0.6, "support": {"d": 14.0}}
       ]

@@ -66,7 +66,7 @@ def mathoptformat_to_pulp(node, name):
         'prob': prob,
         'vars': vars,
         'state_variables': node['state_variables'],
-        'noise_terms': node['noise_terms'],
+        'realizations': node['realizations'],
     }
 
 def solve_second_stage(node, state, noise):
@@ -141,7 +141,7 @@ def benders(first_stage, second_stage, iteration_limit = 20):
         ret = [(
             noise['probability'],
             solve_second_stage(second_stage, x, noise['support'])
-        ) for noise in second_stage['noise_terms']]
+        ) for noise in second_stage['realizations']]
         add_cut(first_stage, x, ret)
         det_bound = value(first_stage['prob'].objective)
         stat_bound = det_bound - first_stage['theta'].varValue + sum(
