@@ -6,6 +6,9 @@ optimization problems called _StochOptFormat_, with the file extension
 
 For convenience, we often refer to StochOptFormat as _SOF_.
 
+StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
+available at [`https://odow.github.io/StochOptFormat/sof.schema.json`](https://odow.github.io/StochOptFormat/sof.schema.json).
+
 **Authors**
 
 - [Oscar Dowson](http://github.com/odow) (Northwestern)
@@ -23,6 +26,12 @@ predominant file format for these problems, SMPS, does not scale to the types of
 problems we want to solve (large multistage stochastic programs), nor does it
 permit the variety of problem classes we want to study (e.g., stochastic conic
 programs).
+
+A more recent attempt to standardize a file format for stochastic programming is
+the stochastic extension to OSiL [3]. StochOptFormat utilizes many of the
+underlying ideas, but has enough differences to justify the creation of a new
+file format. In particular, we use a different standard form for a stochastic
+program.
 
 Over the last 4 years, we (and the broader JuMP team) have set about reimagining
 how we formulate single period deterministic optimziation problems. The result
@@ -395,13 +404,29 @@ set. Each scenario is a list of objects. Each object has two required nodes:
 `node::String` and `support::Object`. `node` is the name of the node to visit,
 and `support` is the realization of the random variable at that node. Note that
 `support` may be an _out-of-sample_ realization, that is, one which is not
-contained in the corresponding `realizations` field of the node. Testing a policy
-is a larger topic, so we expand on it in the section
+contained in the corresponding `realizations` field of the node. Testing a
+policy is a larger topic, so we expand on it in the section
 [Evaluating the policy](#evaluating-the-policy).
 
 ## Evaluating the policy
 
-TODO
+The solution to a deterministic optimization problem is a vector containing the
+primal solution for each decision variable, and possibly a second vector
+containing the dual solution. Both vectors contain a finite number of elements.
+
+In constrast, the solution to a stochastic program is a _policy_. A policy is a
+set of _decision rules_, with one decision rule for each node in the policy
+graph. A decision rule is a function which maps the incoming state variable and
+realization of the random variable at a node to a value for the control
+variables. This function is typically an infinite dimensional object (since,
+e.g., the state variables can be continuous). Therefore, it is impossible to
+represent the optimal policy in a file.
+
+Instead, we evaluate the policy by means of an _out-of-sample_ simulation.
+
+Solution algorithms should report: (i) the cumulative objective value of each
+scenario, as well as the stage objective and all primal (and dual, if applicable
+) values for the decision variables in each node of the scenario.
 
 ## FAQ
 
@@ -444,10 +469,20 @@ TODO
   A: Two options: expand the state-space, or create a scenario tree. For more
   information, read Sections 1, 2, and 3 of [1].
 
+- Q: Where are the risk measures?
+
+  A: Risk measures are not part of the problem definition. They are another
+  input to the solution algorithm. Put another way, one constructs a
+  risk-averse policy to a problem, rather than finding a policy for a
+  risk-averse problem. In addition, many solution methods for stochastic
+  programs (e.g., robust optimization) do not need to consider risk measures.
+
 - Q: I don't like JSON.
 
   A: We're open to better ideas. JSON is universal support in every major
-  programming language, and is human-readable(-ish).
+  programming language, and is human-readable(-ish). For now, we choose JSON and
+  we will revisit the question is convincing data is presented to show that the
+  approach is not viable.
 
 - Q: JSON seems too verbose.
 
@@ -462,7 +497,7 @@ TODO
   parameterized `ScalarAffineFunction`, or a `ScalarQuadraticFunction` without
   parameters.
 
-- Q: Follow up to the previous. I want to have `parameter * x * y`.
+- Q: Follow up to the previous question. I want to have `parameter * x * y`.
 
   A: Changing the quadratic coefficient matrices in solvers is slow, and doing
   so could easily make the problem non-convex. If you really want to, you could
@@ -477,10 +512,14 @@ TODO
 
 [1] Dowson, O. (2020). The policy graph decomposition of multistage stochastic
   programming problems. Networks, 71(1), 3-23.
-  doi: https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932
+  [doi: 10.1002/net.21932](https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932)
   [[preprint]](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)
 
 [2] Legat, B., Dowson, O., Garcia, J.D., Lubin, M. (2020). MathOptInterface: a
   data structure for mathematical optimization problems.
   [[preprint]](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
   [[repository]](https://github.com/jump-dev/MathOptFormat)
+
+[3] Fourer, R., Gassmann, H.I., Ma, J. et al. An XML-based schema for stochastic
+  programs. Ann Oper Res 166, 313 (2009).
+  [doi:10.1007/s10479-008-0419-x](https://doi.org/10.1007/s10479-008-0419-x)
