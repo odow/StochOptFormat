@@ -43,8 +43,13 @@ we have also set about standardizing how we formulate multistage stochastic
 programming problems. The result is a natural decomposition of the problem into
 the _policy graph_ [1].
 
-**We highly recommend that you do not read further without reading (at minimum)
-sections 1, 2, and 3 of [1] and sections 1, 2, 3, and 5 of [2].**
+**We highly recommend that read (at minimum)
+sections 1, 2, and 3 of [1] and sections 1, 2, 3, and 5 of [2].
+as the reasoning of many aspects is clearly presentd together with
+historical context.** However, most of the key ideas can be grasp from
+the example in the next section. In particular, the example contains all the
+details required to fully describe a two-stage stochastic program with
+linear programming subproblems.
 
 These two workstreams are synergistic with each other. We can use the policy
 graph to describe the high-level structure of a stochastic program, and we can
@@ -52,7 +57,7 @@ use MathOptInterface to describe the low-level optimization problem faced by the
 agent within each stage (really, node of the policy graph). Putting these two
 concepts together leads to a natural data structure for multistage stochastic
 programs. StochOptFormat is a serialization of this data structure into the JSON
-file format.
+file format, hence allowing easy access from almost all major computer languages.
 
 StochOptFormat is inspired by our work on [JuMP](https://jump.dev) and
 [SDDP.jl](https://odow.github.io/SDDP.jl/latext). However, it is not exclusive
@@ -69,10 +74,12 @@ In creating StochOptFormat, we wanted to achieve the following:
   be validated for syntactic correctness.
 - We wanted a format that was not restricted to linear programming. We want to
   add cones and integrality.
-- We wanted a format based on the policy graph. Doing so allows us to represent
+- We wanted a format based on the policy graph so that we can go beyond the
+  two-stage realm. Doing so allows us to represent
   a very large class of problem structures, including finite and infinite
   horizon problems, problems with linear stagewise independence, problems with
-  Markovian structure, and problems represented by an arbitrary scenario tree.
+  Markovian structure, problems with mixed hazard-decision and decision harzard structure,
+  and problems represented by an arbitrary scenario tree.
 - We wanted a well-defined notion of what a solution to a stochastic program is.
   (Spoiler alert: it is not the first stage decision. See
   [Evaluating the policy](#evaluating-the-policy).)
@@ -148,7 +155,7 @@ our earlier ideas.
   deterministic.
 
   In our example, the `first_stage` is deterministic, and the `second_stage`
-  node has one random variable, `d`, the demand.
+  node has one random variable, `d`, the demand for newspaper.
 
 - Control variables
 
@@ -158,7 +165,7 @@ our earlier ideas.
 
 - Subproblem
 
-  In the policy graph paper [1], the dynamics of the systen with each node are
+  In the policy graph paper [1], the dynamics of the system with each node are
   split into a transition function, a set of feasible controls, and a stage
   objective. Rather than represent these directly in the file format, we find it
   more convenient to combine these three things in an optimization problem we
@@ -195,6 +202,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
 {
   "author": "Oscar Dowson",
   "name": "newsvendor",
+  "date": "2020-07-10",
   "description": "An SOF implementation of the classical two-stage newsvendor problem.",
   "version": {"major": 0, "minor": 1},
   "root": {
@@ -310,7 +318,7 @@ SOF is a JSON document. The problem is stored as a single JSON object. JSON
 objects are key-value mappings enclused by curly braces.
 
 The file begins with three self-explanatory optional metadata fields:
-`name::String`, `author::String`, and `description::String`.
+`name::String`, `author::String`, and `description::String`. (add date ?)
 
 Note: In the following, `name::String` means that the key of an object is `name`
 and the value should be of type `String`. `::List{Object}` means that the type
@@ -377,7 +385,9 @@ Then, there are five required keys:
 
   - `realizations::List{Object}`
 
-    A list of objects describing the finite discrete realizations of the stagewise-independent noise term in each node. Each object has two required keys:
+    A list of objects describing the finite discrete realizations of the
+    stagewise-independent noise term in each node. Each object has two
+    required keys:
 
     - `probability::Number`
 
@@ -433,6 +443,9 @@ processes, without using the test scenarios.
 The solution to a deterministic optimization problem is a vector containing the
 primal solution for each decision variable, and possibly a second vector
 containing the dual solution. Both vectors contain a finite number of elements.
+Comparing two solutions seems is simple here: measure feasibility of the solution
+and compare objective values, and possibily computation time. However, comparing
+feasibility might be tricky for some classes of problems.
 
 In contrast, the solution to a stochastic program is a _policy_. A policy is a
 set of _decision rules_, with one decision rule for each node in the policy
@@ -444,13 +457,22 @@ represent the optimal policy in a file.
 
 Instead, we evaluate the policy by means of an _out-of-sample_ simulation.
 
-Solution algorithms should report:
+Solution _algorithms_ should report:
 
 - the cumulative objective value of each
 scenario
 - the stage objective for each node in the scenario
 - all primal (and dual, if applicable
 ) values for the decision variables in each node of the scenario
+
+Comparing solutions is even more complex than the deterministic case, however,
+with the above mentioned report it is possible to evaluate multiple metrics of
+the objective function distribution such as expected values, quantiles, CVaR.
+Since solutions ara available for all nodes of the scenario in the solution 
+report, it is possible to use the same methods as for deterministics methods.
+
+We emphasize that the _out-of-sample_ analysis is deeply tied with the actual
+application of stochastic optimization in real life.
 
 ## FAQ
 
@@ -467,7 +489,9 @@ scenario
 
 - Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
 
-  A: Please read Section 2 of [2].
+  A: Actually, its pretty easy to be writen and read by most programming
+  languages; it is very general, easy to extend and compact. Please read
+  Section 2 of [2] for details.
 
 - Q: You don't expect me to write these by hand do you?
 
@@ -481,7 +505,10 @@ scenario
 
 - Q: This seems catered to SDDP; I just have some scenarios.
 
-  A: The policy graph can represent any scenario tree. Go read [1].
+  A: The policy graph can represent any scenario tree. If you problem is a
+  two-stage stochastic program or a multistage one with stagewise independent
+  random variavles you are in speacial cases that are very easy to write.
+  for more details read [1].
 
 - Q: I want continuous random variables.
 
@@ -492,14 +519,19 @@ scenario
 
   A: Two options: expand the state-space, or create a scenario tree. For more
   information, read Sections 1, 2, and 3 of [1].
+  (We could allow a empty "realizations" fields and ask the suer to rely on 
+  historical scenarios)
 
 - Q: Where are the risk measures?
 
   A: Risk measures are not part of the problem definition. They are another
-  input to the solution algorithm. Put another way, one constructs a
+  input to the solution _algorithm_. Put another way, one constructs a
   risk-averse policy to a problem, rather than finding a policy for a
   risk-averse problem. In addition, many solution methods for stochastic
   programs (e.g., robust optimization) do not need to consider risk measures.
+  Note that risk measures are used with the goal of obtaining a alternative
+  distributions for the problem solutions, i.e., some specific statistics of
+  the solutions are more relevant than usual expected values.
 
 - Q: I don't like JSON.
 
@@ -512,21 +544,22 @@ scenario
 
   A: JSON files compress well. For example, for problems in the MIPLIB 2017
   benchmark set, compressed MathOptFormat files are only 37% larger than their
-  compressed MPS equivalents.
+  compressed MPS equivalents [2].
 
 - Q: I want the uncertainty to be an objective/constraint coefficient.
 
   A: Formulate the objective/constraint as a `ScalarQuadraticFunction`. It's up
-  to the reader to infer from the list of the parameters if this is a
+  to the reader to infer from the list of the radom variable if this is a
   parameterized `ScalarAffineFunction`, or a `ScalarQuadraticFunction` without
-  parameters.
+  random variables.
 
-- Q: Follow up to the previous question. I want to have `parameter * x * y`.
+- Q: Follow up to the previous question. I want to have `random * x * y`.
 
   A: Changing the quadratic coefficient matrices in solvers is slow, and doing
   so could easily make the problem non-convex. If you really want to, you could
   add a slack variable (and equality constraint) `z == parameter * x`, and then
-  use `z * y`.
+  use `z * y`. If you are in this case, please open an issue, we would like to
+  have examples.
 
 - Q: Why haven't you written an interface to ⟨INSERT LANGUAGE HERE⟩ yet?
 
