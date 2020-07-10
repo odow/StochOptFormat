@@ -354,7 +354,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
 SOF is a JSON document. The problem is stored as a single JSON object. JSON
 objects are key-value mappings enclused by curly braces.
 
-The file begins with three self-explanatory optional metadata fields:
+The file begins with four self-explanatory optional metadata fields:
 `name::String`, `author::String`, `date::String`, and `description::String`.
 
 Note: In the following, `name::String` means that the key of an object is `name`
@@ -581,11 +581,11 @@ application of stochastic optimization in real life.
   parameterized `ScalarAffineFunction`, or a `ScalarQuadraticFunction` without
   random variables.
 
-- Q: Follow up to the previous question. I want to have `random * x * y`.
+- Q: Follow up to the previous question. I want to have `random_variable * x * y`.
 
   A: Changing the quadratic coefficient matrices in solvers is slow, and doing
   so could easily make the problem non-convex. If you really want to, you could
-  add a slack variable (and equality constraint) `z == parameter * x`, and then
+  add a slack variable (and equality constraint) `z == random_variable * x`, and then
   use `z * y`. If you are in this case, please open an issue; we would like to
   see some real-world examples before proceeding further.
 
