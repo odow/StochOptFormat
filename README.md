@@ -204,6 +204,7 @@ our earlier ideas.
 ### Graphical representation
 
 One strength of the policy graph is that the structure can be easily visualized. For each node in the graph, we can draw a picture like the following.
+
 <img src="assets/node.png" alt="node" width="400px"/>
 
 Here, `x` is the incoming state variable, `x'` is the outgoing state vairable,
