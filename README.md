@@ -58,8 +58,8 @@ StochOptFormat is inspired by our work on [JuMP](https://jump.dev) and
 [SDDP.jl](https://odow.github.io/SDDP.jl/latext). However, it is not exclusive
 to Julia or stochastic dual dynamic programming. For example, this format makes
 it possible to read in multistage stochastic programming problems into Python
-and solve them with progressive hedging. We have not done so yet because this is
-not our area of expertise.
+and solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
+We have not implemented the code yet because this is not our area of expertise.
 
 In creating StochOptFormat, we wanted to achieve the following:
 
