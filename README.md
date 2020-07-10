@@ -9,6 +9,9 @@ For convenience, we often refer to StochOptFormat as _SOF_.
 StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
 available at [`https://odow.github.io/StochOptFormat/sof.schema.json`](https://odow.github.io/StochOptFormat/sof.schema.json).
 
+Example problems and code to read and solve two-stage linear programs in Python
+and Julia is available at the project's [Github repository](https://github.com/odow/StochOptFormat).
+
 **Authors**
 
 - [Oscar Dowson](http://github.com/odow) (Northwestern)
@@ -21,11 +24,11 @@ suggestions or comments, please open an issue._
 
 Libraries of benchmark instances have been instrumental in driving progress in
 many areas of optimization. In stochastic programming, some effort has been made
-on this front (see, e.g., https://www.stoprog.org/resources). However, the
-predominant file format for these problems, SMPS, does not scale to the types of
-problems we want to solve (large multistage stochastic programs), nor does it
-permit the variety of problem classes we want to study (e.g., stochastic conic
-programs).
+on this front (see, e.g., [https://www.stoprog.org/resources](https://www.stoprog.org/resources)).
+However, the predominant file format for these problems, SMPS, does not scale to
+the types of problems we want to solve (large multistage stochastic programs),
+nor does it permit the variety of problem classes we want to study (e.g.,
+stochastic conic programs).
 
 A more recent attempt to standardize a file format for stochastic programming is
 the stochastic extension to OSiL [3]. StochOptFormat utilizes many of the
@@ -431,7 +434,7 @@ The solution to a deterministic optimization problem is a vector containing the
 primal solution for each decision variable, and possibly a second vector
 containing the dual solution. Both vectors contain a finite number of elements.
 
-In constrast, the solution to a stochastic program is a _policy_. A policy is a
+In contrast, the solution to a stochastic program is a _policy_. A policy is a
 set of _decision rules_, with one decision rule for each node in the policy
 graph. A decision rule is a function which maps the incoming state variable and
 realization of the random variable at a node to a value for the control
@@ -441,9 +444,13 @@ represent the optimal policy in a file.
 
 Instead, we evaluate the policy by means of an _out-of-sample_ simulation.
 
-Solution algorithms should report: (i) the cumulative objective value of each
-scenario, as well as the stage objective and all primal (and dual, if applicable
-) values for the decision variables in each node of the scenario.
+Solution algorithms should report:
+
+- the cumulative objective value of each
+scenario
+- the stage objective for each node in the scenario
+- all primal (and dual, if applicable
+) values for the decision variables in each node of the scenario
 
 ## FAQ
 
