@@ -133,7 +133,7 @@
                 },
                 "subproblem": {
                     "description": "The subproblem in MathOptFormat.",
-                    "$ref": "https://odow.github.io/StochOptFormat/mof.schema.json"
+                    "$ref": "https://jump.dev/MathOptFormat/mof.0.4.schema.json"
                 },
                 "realizations": {
                     "type": "array",
