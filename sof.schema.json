@@ -19,15 +19,19 @@
             }
         },
         "name": {
-            "description": "The name of the model.",
+            "description": "The name of the problem.",
             "type": "string"
         },
         "author": {
-            "description": "The author of the model for citation purposes.",
+            "description": "The author of the problem for citation purposes.",
+            "type": "string"
+        },
+        "date": {
+            "description": "The date that the problem was created [yyyy-mm-dd].",
             "type": "string"
         },
         "description": {
-            "description": "A human-readable description of the model.",
+            "description": "A human-readable description of the problem.",
             "type": "string"
         },
         "root": {
@@ -98,14 +102,14 @@
             }
         },
         "node": {
-            "description": "An node in the policy graph.",
+            "description": "A node in the policy graph.",
             "type": "object",
             "required": [
                 "state_variables", "random_variables", "subproblem", "realizations"
             ],
             "properties": {
                 "state_variables": {
-                    "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the MathOptFormat file.",
+                    "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the subproblem.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "object",
@@ -128,7 +132,7 @@
                     }
                 },
                 "subproblem": {
-                    "description": "The basic subproblem in MathOptFormat.",
+                    "description": "The subproblem in MathOptFormat.",
                     "$ref": "https://odow.github.io/StochOptFormat/mof.schema.json"
                 },
                 "realizations": {
