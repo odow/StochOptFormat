@@ -3,7 +3,7 @@
     "$id": "https://odow.github.io/StochOptFormat/sof.schema.json",
     "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
-    "required": ["version", "root", "nodes", "edges"],
+    "required": ["version", "root", "nodes", "edges", "test_scenarios"],
     "properties": {
         "version": {
             "description": "The version of StochOptFormat that this schema validates against.",
@@ -71,25 +71,12 @@
         }
     },
     "test_scenarios": {
-        "type": "array",
-        "items": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "required": ["node", "support"],
-                "properties": {
-                    "node": {
-                        "type": "string"
-                    },
-                    "support": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number"
-                        }
-                    }
-                }
-            }
-        }
+        "description": "Out-of-sample scenarios used to evaluate the policy.",
+        "$ref": "#/definitions/scenarios"
+    },
+    "historical_scenarios": {
+        "description": "Optional scenarios used when building the problem. Allows modellers to experiment with different stochastic processes.",
+        "$ref": "#/definitions/scenarios"
     },
     "definitions": {
         "edge": {
@@ -160,6 +147,27 @@
                                 "additionalProperties": {
                                     "type": "number"
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "scenarios": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["node", "support"],
+                    "properties": {
+                        "node": {
+                            "type": "string"
+                        },
+                        "support": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number"
                             }
                         }
                     }

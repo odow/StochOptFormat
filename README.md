@@ -1,4 +1,4 @@
-# StochOptFormat: a novel data structure for multistage stochastic programming
+# StochOptFormat: a data structure for multistage stochastic programming
 
 This repository describes a data structure and file-format for stochastic
 optimization problems called _StochOptFormat_, with the file extension
@@ -35,13 +35,13 @@ program.
 
 Over the last 4 years, we (and the broader JuMP team) have set about reimagining
 how we formulate single period deterministic optimziation problems. The result
-is a novel data structure for optimization called MathOptInterface [2]. In
-addition, we have also set about standardizing how we formulate multistage
-stochastic programming problems. The result is a natural decomposition of the
-problem into the _policy graph_ [1].
+is a data structure for optimization called MathOptInterface [2]. In addition,
+we have also set about standardizing how we formulate multistage stochastic
+programming problems. The result is a natural decomposition of the problem into
+the _policy graph_ [1].
 
 **We highly recommend that you do not read further without reading (at minimum)
-sections 1, 2, and 3 of [1] and sections 1, 2, and 5 of [2].**
+sections 1, 2, and 3 of [1] and sections 1, 2, 3, and 5 of [2].**
 
 These two workstreams are synergistic with each other. We can use the policy
 graph to describe the high-level structure of a stochastic program, and we can
@@ -82,7 +82,7 @@ _not_ set out to do.
 
 ## Example
 
-There are alot of concepts to unpack in SOF. We present a two-stage stochastic
+There are a lot of concepts to unpack in SOF. We present a two-stage stochastic
 linear program example first, and then explain each section of the corresponding
 SOF file in detail.
 
@@ -288,6 +288,15 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
       {"node": "first_stage", "support": {}},
       {"node": "second_stage", "support": {"d": 9.0}}
     ]
+  ],
+  "historical_scenarios": [
+    [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 10.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 14.0}}
+    ]
   ]
 }
 ```
@@ -304,7 +313,7 @@ Note: In the following, `name::String` means that the key of an object is `name`
 and the value should be of type `String`. `::List{Object}` means that the type
 is a `List`, and elements of the list are `Object`s.
 
-Then, there are four required keys:
+Then, there are five required keys:
 
 - `version::Object`
 
@@ -395,18 +404,26 @@ Then, there are four required keys:
 
     The nominal probability of transitioning from node `from` to node `to`.
 
-In addition to the required fields, there is an additional field,
-`test_scenarios::List{List{Object}}`, that is used for evaluating the
-performance of a policy.
+- `test_scenarios::List{List{Object}}`
 
-`test_scenarios` is a list, containing one element for each scenario in the test
-set. Each scenario is a list of objects. Each object has two required nodes:
-`node::String` and `support::Object`. `node` is the name of the node to visit,
-and `support` is the realization of the random variable at that node. Note that
-`support` may be an _out-of-sample_ realization, that is, one which is not
-contained in the corresponding `realizations` field of the node. Testing a
-policy is a larger topic, so we expand on it in the section
-[Evaluating the policy](#evaluating-the-policy).
+  Scenarios to be used to evaluate a policy. `test_scenarios` is a list,
+  containing one element for each scenario in the test set. Each scenario is a
+  list of objects. Each object has two required nodes: `node::String` and
+  `support::Object`. `node` is the name of the node to visit, and `support` is
+  the realization of the random variable at that node. Note that `support` may
+  be an _out-of-sample_ realization, that is, one which is not contained in the
+  corresponding `realizations` field of the node. Testing a policy is a larger
+  topic, so we expand on it in the section [Evaluating the policy](#evaluating-the-policy).
+
+There is also an optional field, `historical_scenarios::List{List{Object}}`. The
+value of the field is identical to `test_scenarios`, except that these scenarios
+should be any historical data that was used when first constructing the problem.
+This allows modellers to experiment with different representations of the
+underlying stochastic process. For example, we can build a linear policy graph
+assuming that the random variables are stagewise independent. However, the
+historical data may have some dependence (e.g., autoregressive). Providing
+historical data allows the modeller to experiment with different stochastic
+processes, without using the test scenarios.
 
 ## Evaluating the policy
 

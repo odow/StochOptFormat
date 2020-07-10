@@ -97,5 +97,14 @@
       {"node": "first_stage", "support": {}},
       {"node": "second_stage", "support": {"d": 9.0}}
     ]
+  ],
+  "historical_scenarios": [
+    [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 10.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 14.0}}
+    ]
   ]
 }
