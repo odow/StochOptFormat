@@ -524,7 +524,7 @@ application of stochastic optimization in real life.
 
 - Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
 
-  A: MathOptFormat can be read and writen y most programming languages. In 
+  A: MathOptFormat can be read and writen by most programming languages. In 
   addition, it is very general and easy to extend. Please read Section 2 of [2] 
   for more details behind the design decisions behind MathOptFormat.
 
