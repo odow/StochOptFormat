@@ -18,7 +18,19 @@ and Julia is available at the project's [Github repository](https://github.com/o
 - [Joaquim Garcia](http://github.com/joaquimg) (PSR-Inc, PUC-Rio)
 
 _Note: StochOptFormat is in development. Things may change! If you have
-suggestions or comments, please open an issue._
+suggestions or comments, please [open an issue](https://github.com/odow/StochOptFormat/issues/new)._
+
+### Sections
+
+- [Motivation and design principles](#motivation-and-design-principles)
+- [Example](#example)
+  - [Vocabulary](#vocabulary)
+  - [Graphical representation](#graphical-representation)
+  - [Problem in StochOptFormat](#problem-in-stochoptformat)
+  - [Explanation](#explanation)
+- [Evaluating the policy](#evaluating-the-policy)
+- [FAQ](#faq)
+- [References](#references)
 
 ## Motivation and design principles
 
@@ -82,6 +94,7 @@ _not_ set out to do.
 
   - We did not try to incorporate chance constraints.
   - We did not try to incorporate continuous random variables.
+  - We did not try to incorporate decision-hazard nodes.
 
 ## Example
 
@@ -187,6 +200,30 @@ our earlier ideas.
              u     - d <= 0
              u         >= 0.
   ```
+
+### Graphical representation
+
+One strength of the policy graph is that the structure can be easily visualized. For each node in the graph, we can draw a picture like the following.
+<img src="assets/node.png" alt="node" width="400px"/>
+
+Here, `x` is the incoming state variable, `x'` is the outgoing state vairable,
+`ω` is the random variable observed before making a decision, `u` is the control
+variable, `Tᵢ` is transition function, and `Cᵢ` is the stage objective. `πᵢ` is
+the decision rule, which maps the incoming state variable `x` and realization of
+the random variable `ω` to a feasible control `u`. (The set of feasible controls
+`u ∈ Uᵢ(x, ω)` is not shown.)
+
+From this basic building block, we can construct an arbitrary policy graph. For
+example, our example two-stage stochastic program can be visualized as follows:
+
+<img src="assets/2sp.png" alt="2sp" width="400px"/>
+
+Here, the first stage is deterministic, then there is a second stage problem in
+which the decision is taken after observing the uncertainty.
+
+We encourage you to read the paper [1] which outlines the full complexity of
+problem that can be represented, including problems with Markovian structure and
+infinite horizon problems (i.e., cyclic policy graphs).
 
 ### Problem in StochOptFormat
 
@@ -377,7 +414,9 @@ Then, there are five required keys:
 
   - `realizations::List{Object}`
 
-    A list of objects describing the finite discrete realizations of the stagewise-independent noise term in each node. Each object has two required keys:
+    A list of objects describing the finite discrete realizations of the
+    stagewise-independent random variable in each node. Each object has two
+    required keys:
 
     - `probability::Number`
 
