@@ -28,7 +28,7 @@ suggestions or comments, please [open an issue](https://github.com/odow/StochOpt
   - [Graphical representation](#graphical-representation)
   - [Problem in StochOptFormat](#problem-in-stochoptformat)
   - [Explanation](#explanation)
-- [Evaluating the policy](#evaluating-the-policy)
+- [Problems, algorithms, and policies](#problems-algorithms-and-policies)
 - [FAQ](#faq)
 - [References](#references)
 
@@ -94,7 +94,7 @@ In creating StochOptFormat, we wanted to achieve the following:
   represented by an arbitrary scenario tree.
 - We wanted a well-defined notion of what a solution to a stochastic program is.
   (Spoiler alert: it is not the first stage decision. See
-  [Evaluating the policy](#evaluating-the-policy).)
+  [Problems, algorithms, and policies](#problems-algorithms-and-policies).)
 
 Equally important as the things that we set out to do, is the things that we did
 _not_ set out to do.
@@ -227,12 +227,12 @@ example two-stage stochastic program can be visualized as follows:
 
 <img src="assets/2sp.png" alt="2sp" width="400px"/>
 
-Here, the first stage is deterministic, then there is a second stage problem in
-which the decision is taken after observing the uncertainty.
+Here, the first stage is deterministic, then there is a second stage in which
+the decision is taken after observing the uncertainty.
 
 We encourage you to read the paper [1] which outlines the full complexity of
-problem that can be represented, including problems with Markovian structure and
-infinite horizon problems (i.e., cyclic policy graphs).
+problems that can be represented, including problems with Markovian structure
+and infinite horizon problems (i.e., cyclic policy graphs).
 
 ### Problem in StochOptFormat
 
@@ -465,7 +465,7 @@ After the optional metadata keys, there are five required keys:
   the realization of the random variable at that node. Note that `support` may
   be an _out-of-sample_ realization, that is, one which is not contained in the
   corresponding `realizations` field of the node. Testing a policy is a larger
-  topic, so we expand on it in the section [Evaluating the policy](#evaluating-the-policy).
+  topic, so we expand on it in the section [Problems, algorithms, and policies](#problems-algorithms-and-policies).
 
 There is also an optional key, `historical_scenarios::List{List{Object}}`. The
 value of the key is identical to `test_scenarios`, except that these scenarios
@@ -490,36 +490,70 @@ dependence (e.g., autoregressive). Providing historical data allows the modeller
 to experiment with different stochastic processes, without corrupting the
 testing procedure by using the test scenarios to build the model.
 
-## Evaluating the policy
+## Problems, algorithms, and policies
 
-The solution to a deterministic optimization problem is a vector containing the
-primal solution for each decision variable, and possibly a second vector
-containing the dual solution. Both vectors contain a finite number of elements.
+Now that we now how problems are represented in StochOptFormat, we need to
+introduce some additional vocabulary.
 
-Comparing two solutions is simple: check the feasibility of each solution,
-compare objective values, and possibly compare computation time.
+- Problem
 
-In contrast, the solution to a stochastic program is a _policy_. A policy is a
-set of _decision rules_, with one decision rule for each node in the policy
-graph. A decision rule is a function which maps the incoming state variable and
-realization of the random variable at a node to a value for each control
-variable. This function is typically an infinite dimensional object (since,
-e.g., the state variables can be continuous). Therefore, it is impossible to
-represent the optimal policy in a file.
+  The datastructure formulated as a StochOptFormat file. Also called _program_
+  or _model_. We standardize on _problem_.
 
-To overcome this problem, we evaluate the policy by means of an _out-of-sample_
-simulation on a finite discrete set of scenarios.
+- Policy
 
-Solution _algorithms_ should report:
+  The solution to a deterministic optimization problem is a vector containing
+  the primal solution for each decision variable, and possibly a second vector
+  containing the dual solution. Both vectors contain a finite number of
+  elements.
 
-- The cumulative objective value of each scenario.
+  In contrast, the solution to a stochastic program is a _policy_. A policy is a
+  set of _decision rules_, with one decision rule for each node in the policy
+  graph. A decision rule is a function which maps the incoming state variable
+  and realization of the random variable at a node to a value for each control
+  variable. This function is typically an infinite dimensional object (since,
+  e.g., the state variables can be continuous).
+
+- Algorithm
+
+  An algorithm takes a problem as input, and constructs a policy as output.
+  Also called _solution method_ or _solver_.
+
+
+### Evaluating the policy
+
+Comparing two solutions to a determinstic optimization problem is simple: check
+the feasibility of each solution, compare objective values, and possibly compare
+computation time.
+
+In contrast, comparing two policies is not simple. First, a policy produces a
+distribution of outcomes, so ranking two policies requires a user-provided risk
+measure based on their risk preference. Moreover, two users may have different
+risk preferences, so there is not a uniquely optimal policy.
+
+Second, in many cases the policy is an infinite dimensional object, and the set
+of scenarios over which it should be evaluated is so large as to be intractable.
+
+To overcome these two issues, we evaluate the policy by means of an
+_out-of-sample_ simulation on a finite discrete set of scenarios provided in the
+`test_scenarios` key of a StochOptFormat file.
+
+Solution algorithms should evaluate their policy on each of these scenarios and
+report:
+
+- The cumulative objective value of each node in the scenario.
 - The objective for each node in the scenario.
 - All primal (and dual, if applicable) values for the decision variables in each
   node of the scenario.
 
-Comparing solutions is more complex than the deterministic case; however, with
+Evaluating the solution on a finite list of scenarios solves the intractability
+problem, but it does not solve the user's risk perference problem. However, with
 the above mentioned report, it is possible to evaluate multiple metrics of the
 resulting policy, such as expected objective values, and various quantiles.
+
+We envisage that any benchmark library would provide algorithm rankings based on
+a number of difference risk measures (e.g., expectation, worst-case, variance),
+so that users can select the one that most closely resembles theirs.
 
 We emphasize that the _out-of-sample_ analysis is deeply tied with the actual
 application of stochastic optimization in real life.
@@ -570,11 +604,11 @@ application of stochastic optimization in real life.
 
 - Q: Where are the risk measures?
 
-  A: Risk measures are not part of the problem definition. They are another
-  input to the solution _algorithm_. Put another way, one constructs a
-  risk-averse policy to a problem, rather than finding a policy for a
-  risk-averse problem. In addition, many solution methods for stochastic
-  programs (e.g., robust optimization) do not need to consider risk measures.
+  A: Risk measures are not part of the problem. They are another input to the
+  solution _algorithm_. Put another way, one constructs a risk-averse policy to
+  a problem, rather than finding a policy for a risk-averse problem. In
+  addition, many solution algorithms (e.g., robust optimization) do not need to
+  consider risk measures.
 
 - Q: I don't like JSON.
 
