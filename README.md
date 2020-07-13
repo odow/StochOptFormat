@@ -37,10 +37,10 @@ suggestions or comments, please [open an issue](https://github.com/odow/StochOpt
 Libraries of benchmark instances have been instrumental in driving progress in
 many areas of optimization. In stochastic programming, some effort has been made
 on this front (see, e.g., [https://www.stoprog.org/resources](https://www.stoprog.org/resources)).
-However, the predominant file format for these problems, SMPS, does not scale to
-the types of problems we want to solve (large multistage stochastic programs),
-nor does it permit the variety of problem classes we want to study (e.g.,
-stochastic conic programs).
+However, the predominant file format for these problems, SMPS [4], does not
+scale to the types of problems we want to solve (large multistage stochastic
+programs), nor does it permit the variety of problem classes we want to study
+(e.g., stochastic conic programs).
 
 A more recent attempt to standardize a file format for stochastic programming is
 the stochastic extension to OSiL [3]. StochOptFormat utilizes many of the
@@ -59,23 +59,24 @@ the _policy graph_ [1].
 sections 1, 2, and 3 of [1] and sections 1, 2, 3, and 5 of [2].**
 
 Those papers present the reasoning of behind many aspects of their design, along
-with the necessary historical context. However, most of the key ideas can be 
-grasped from the example in the next section. In particular, the example contains 
+with the necessary historical context. However, most of the key ideas can be
+grasped from the example in the next section. In particular, the example contains
 all the details required to fully describe a two-stage stochastic linear program.
 
-These two workstreams are synergistic with each other. We can use the policy
-graph to describe the high-level structure of a stochastic program, and we can
-use MathOptInterface to describe the low-level optimization problem faced by the
-agent within each stage (really, node of the policy graph). Putting these two
-concepts together leads to a natural data structure for multistage stochastic
-programs. StochOptFormat is a serialization of this data structure into the JSON
-file format, hence allowing easy access from almost all major computer languages.
+MathOptInterface and the policy graph are synergistic with each other. We can
+use the policy graph to describe the high-level structure of a stochastic
+program, and we can use MathOptInterface to describe the low-level optimization
+problem faced by the agent within each stage (really, node of the policy graph).
+Putting these two concepts together leads to a natural data structure for
+multistage stochastic programs. StochOptFormat is a serialization of this data
+structure into the JSON file format, hence allowing easy access from almost all
+major computer languages.
 
 StochOptFormat is inspired by our work on [JuMP](https://jump.dev) and
 [SDDP.jl](https://odow.github.io/SDDP.jl/latext). However, it is not exclusive
 to Julia or stochastic dual dynamic programming. For example, this format makes
-it possible to read in multistage stochastic programming problems into Python
-and solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
+it possible to read multistage stochastic programming problems into Python and
+solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
 We have not implemented the code yet because this is not our area of expertise.
 
 In creating StochOptFormat, we wanted to achieve the following:
@@ -84,12 +85,12 @@ In creating StochOptFormat, we wanted to achieve the following:
   decision periods, state variables, and control variables.
 - We wanted a format that was rigidly defined by a schema, so that files could
   be validated for syntactic correctness.
-- We wanted a format that was not restricted to linear programming. We want to
+- We wanted a format that was not restricted to linear programming; we want to
   add cones and integrality.
 - We wanted a format based on the policy graph so that we can go beyond the
-  two-stage realm. Doing so allows us to represent a very large class of problem 
-  structures, including finite and infinite horizon problems, problems with linear 
-  stagewise independence, problems with Markovian structure, and problems 
+  two-stage realm. Doing so allows us to represent a very large class of problem
+  structures, including finite and infinite horizon problems, problems with
+  linear stagewise independence, problems with Markovian structure, and problems
   represented by an arbitrary scenario tree.
 - We wanted a well-defined notion of what a solution to a stochastic program is.
   (Spoiler alert: it is not the first stage decision. See
@@ -112,19 +113,19 @@ Consider a two-stage newsvendor problem. In the first stage, the agent chooses
 `x`, the number of newspapers to buy at a cost \$1/newspaper. In the second
 stage, the uncertain demand of `d` newspapers is realized, and the agent sells
 `u` newspapers at a price of \$1.50/newspaper, with the constraint that
-`u = min{x, d}`. The demand is a either 10 units with probability 0.4, or 14
-units with probability 0.6.
+`u = min{x, d}`. The demand is either 10 units with probability 0.4, or 14 units
+with probability 0.6.
 
 ### Vocabulary
 
-Here we briefly summarize the important terms used by StochOptFormat; we direct
+Here, we briefly summarize the important terms used by StochOptFormat; we direct
 the reader to [1] for more information. Note that some of our terms differ
 slightly from [1]. The act of formalizing a data structure has clarified some of
 our earlier ideas.
 
 - Nodes
 
-  A policy graph is made up of nodes. Each node correspond to a point in time
+  A policy graph is made up of nodes. Each node corresponds to a point in time
   at which the agent makes a decision.
 
   In our example, there are two nodes: `first_stage` and `second_stage`.
@@ -138,9 +139,9 @@ our earlier ideas.
 
   Edges connect two nodes in the policy graph. Each edge has a `from` node, a
   `to` node, and a `probability` of transitioning along the edge. Note that the
-  sum of probabilities along outgoing edges of a node does not have to sum to 1.
+  sum of probabilities along outgoing edges of a node does not have to equal 1.
   This allows, for example, discount factors in cyclic graphs and nodes with no
-  children. See [1] for more details.
+  children, see [1] for more details.
 
   In our example, there are two edges.
     1. `root` to `first_stage` with probability 1
@@ -172,13 +173,13 @@ our earlier ideas.
 - Control variables
 
   Control variables are decisions taken by the agent within a node. They remain
-  local to the node, and their values are not need by the agent in future nodes
-  to make a decision.
+  local to the node, and their values are not needed by the agent in future
+  nodes to make a decision.
 
 - Subproblem
 
-  In the policy graph paper [1], the dynamics of the system with each node are
-  split into a transition function, a set of feasible controls, and a stage
+  In the policy graph paper [1], the dynamics of the system within each node are
+  split into a transition function, a set of feasible controls, and an
   objective. Rather than represent these directly in the file format, we find it
   more convenient to combine these three things in an optimization problem we
   refer to as the _subproblem_.
@@ -192,7 +193,7 @@ our earlier ideas.
   problem. This means that if a random variable is multiplied by a state or
   control variable in a constraint or in the objective, it is represented in
   the subproblem as a quadratic objective or constraint, even if the subproblem
-  is linear with the random variable fixed.
+  is linear with the value of the random variable fixed.
 
   For our example, the first-stage subproblem is:
   ```
@@ -209,19 +210,20 @@ our earlier ideas.
 
 ### Graphical representation
 
-One strength of the policy graph is that the structure can be easily visualized. For each node in the graph, we can draw a picture like the following.
+One strength of the policy graph is that the structure can be easily visualized.
+For each node in the graph, we can draw a picture like the following.
 
 <img src="assets/node.png" alt="node" width="400px"/>
 
-Here, `x` is the incoming state variable, `x'` is the outgoing state vairable,
+Here, `x` is the incoming state variable, `x'` is the outgoing state variable,
 `ω` is the random variable observed before making a decision, `u` is the control
 variable, `Tᵢ` is transition function, and `Cᵢ` is the stage objective. `πᵢ` is
 the decision rule, which maps the incoming state variable `x` and realization of
 the random variable `ω` to a feasible control `u`. (The set of feasible controls
 `u ∈ Uᵢ(x, ω)` is not shown.)
 
-From this basic building block, we can construct an arbitrary policy graph. For
-example, our example two-stage stochastic program can be visualized as follows:
+From this basic building block, we can construct an arbitrary policy graph. Our
+example two-stage stochastic program can be visualized as follows:
 
 <img src="assets/2sp.png" alt="2sp" width="400px"/>
 
@@ -354,14 +356,14 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
 SOF is a JSON document. The problem is stored as a single JSON object. JSON
 objects are key-value mappings enclused by curly braces.
 
-The file begins with four self-explanatory optional metadata fields:
+The file begins with four self-explanatory optional metadata keys:
 `name::String`, `author::String`, `date::String`, and `description::String`.
 
 Note: In the following, `name::String` means that the key of an object is `name`
 and the value should be of type `String`. `::List{Object}` means that the type
 is a `List`, and elements of the list are `Object`s.
 
-Then, there are five required keys:
+After the optional metadata keys, there are five required keys:
 
 - `version::Object`
 
@@ -465,15 +467,28 @@ Then, there are five required keys:
   corresponding `realizations` field of the node. Testing a policy is a larger
   topic, so we expand on it in the section [Evaluating the policy](#evaluating-the-policy).
 
-There is also an optional field, `historical_scenarios::List{List{Object}}`. The
-value of the field is identical to `test_scenarios`, except that these scenarios
+There is also an optional key, `historical_scenarios::List{List{Object}}`. The
+value of the key is identical to `test_scenarios`, except that these scenarios
 should be any historical data that was used when first constructing the problem.
 This allows modellers to experiment with different representations of the
-underlying stochastic process. For example, we can build a linear policy graph
-assuming that the random variables are stagewise independent. However, the
-historical data may have some dependence (e.g., autoregressive). Providing
-historical data allows the modeller to experiment with different stochastic
-processes, without using the test scenarios.
+underlying stochastic process.
+
+In our example, the second stage realizations have probilities of 0.6 and 0.4.
+However, there are only two `historical_scenarios`, so one may infer that
+another reasonable model would be to give probabilities of 0.5 and 0.5.
+
+Providing both `realizations` and `historical_scenarios` allows us to to do two
+things:
+
+1. Solve a model _as formulated by someone else_.
+2. Experiment with different formulations of the same sequential decision
+  problem using a standard dataset.
+
+For example, we can build a linear policy graph assuming that the random
+variables are stagewise independent. However, the historical data may have some
+dependence (e.g., autoregressive). Providing historical data allows the modeller
+to experiment with different stochastic processes, without corrupting the
+testing procedure by using the test scenarios to build the model.
 
 ## Evaluating the policy
 
@@ -481,30 +496,30 @@ The solution to a deterministic optimization problem is a vector containing the
 primal solution for each decision variable, and possibly a second vector
 containing the dual solution. Both vectors contain a finite number of elements.
 
-Comparing two solutions is simple: check the feasibility of each solution, compare 
-objective values, and possibly compare computation time.
+Comparing two solutions is simple: check the feasibility of each solution,
+compare objective values, and possibly compare computation time.
 
 In contrast, the solution to a stochastic program is a _policy_. A policy is a
 set of _decision rules_, with one decision rule for each node in the policy
 graph. A decision rule is a function which maps the incoming state variable and
-realization of the random variable at a node to a value for the control
-variables. This function is typically an infinite dimensional object (since,
+realization of the random variable at a node to a value for each control
+variable. This function is typically an infinite dimensional object (since,
 e.g., the state variables can be continuous). Therefore, it is impossible to
 represent the optimal policy in a file.
 
-Instead, we evaluate the policy by means of an _out-of-sample_ simulation.
+To overcome this problem, we evaluate the policy by means of an _out-of-sample_
+simulation on a finite discrete set of scenarios.
 
 Solution _algorithms_ should report:
 
-- the cumulative objective value of each
-scenario
-- the stage objective for each node in the scenario
-- all primal (and dual, if applicable
-) values for the decision variables in each node of the scenario
+- The cumulative objective value of each scenario.
+- The objective for each node in the scenario.
+- All primal (and dual, if applicable) values for the decision variables in each
+  node of the scenario.
 
-Comparing solutions is more complex than the deterministic case; however, with the 
-above mentioned report it is possible to evaluate multiple metrics of the objective 
-function distribution, such as expected values, quantiles, and CVaR.
+Comparing solutions is more complex than the deterministic case; however, with
+the above mentioned report, it is possible to evaluate multiple metrics of the
+resulting policy, such as expected objective values, and various quantiles.
 
 We emphasize that the _out-of-sample_ analysis is deeply tied with the actual
 application of stochastic optimization in real life.
@@ -524,9 +539,9 @@ application of stochastic optimization in real life.
 
 - Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
 
-  A: MathOptFormat can be read and writen by most programming languages. In 
-  addition, it is very general and easy to extend. Please read Section 2 of [2] 
-  for more details behind the design decisions behind MathOptFormat.
+  A: MathOptFormat can be read and writen by most programming languages. In
+  addition, it is very general and easy to extend. Please read Section 2 of [2]
+  for more a discussion of the design decisions behind MathOptFormat.
 
 - Q: You don't expect me to write these by hand do you?
 
@@ -540,13 +555,13 @@ application of stochastic optimization in real life.
 
 - Q: This seems catered to SDDP; I just have some scenarios.
 
-  A: The policy graph can represent any scenario tree. For more details read 
+  A: The policy graph can represent any scenario tree. For more details read
   [1].
 
 - Q: I want continuous random variables.
 
   A: In this initial version of the format, we only consider finite discrete
-  random variables. We might consider adding continuous onces in the future.
+  random variables. We might consider adding continuous ones in the future.
 
 - Q: My stochastic process is not stagewise-independent.
 
@@ -565,7 +580,7 @@ application of stochastic optimization in real life.
 
   A: We're open to better ideas. JSON is universal support in every major
   programming language, and is human-readable(-ish). For now, we choose JSON and
-  we will revisit the question is convincing data is presented to show that the
+  we will revisit the question if convincing data is presented to show that the
   approach is not viable.
 
 - Q: JSON seems too verbose.
@@ -585,9 +600,9 @@ application of stochastic optimization in real life.
 
   A: Changing the quadratic coefficient matrices in solvers is slow, and doing
   so could easily make the problem non-convex. If you really want to, you could
-  add a slack variable (and equality constraint) `z == random_variable * x`, and then
-  use `z * y`. If you are in this case, please open an issue; we would like to
-  see some real-world examples before proceeding further.
+  add a slack variable (and equality constraint) `z == random_variable * x`, and
+  then use `z * y`. If you are in this case, please open an issue; we would like
+  to see some real-world examples before proceeding further.
 
 - Q: Why haven't you written an interface to ⟨INSERT LANGUAGE HERE⟩ yet?
 
@@ -608,3 +623,6 @@ application of stochastic optimization in real life.
 [3] Fourer, R., Gassmann, H.I., Ma, J. et al. An XML-based schema for stochastic
   programs. Ann Oper Res 166, 313 (2009).
   [doi:10.1007/s10479-008-0419-x](https://doi.org/10.1007/s10479-008-0419-x)
+
+[4] Gassmann, H. I., & Kristjánsson, B. (2008). The SMPS format explained. IMA
+  journal of management mathematics, 19(4), 347-377. [doi: 10.1093/imaman/dpm007](http://maximal.net/resources/GassmannKristjansson_dpm007v1.pdf)
