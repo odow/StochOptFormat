@@ -4,7 +4,7 @@ This repository describes a data structure and file-format for stochastic
 optimization problems called _StochOptFormat_, with the file extension
 `.sof.json`.
 
-For convenience, we often refer to StochOptFormat as _SOF_.
+For convenience, we sometimes abbreviate StochOptFormat to _SOF_.
 
 StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
 available at [`https://odow.github.io/StochOptFormat/sof.schema.json`](https://odow.github.io/StochOptFormat/sof.schema.json).
@@ -105,9 +105,9 @@ _not_ set out to do.
 
 ## Example
 
-There are a lot of concepts to unpack in SOF. We present a two-stage stochastic
-linear program example first, and then explain each section of the corresponding
-SOF file in detail.
+There are a lot of concepts to unpack in StochOptFormat. We present a two-stage
+stochastic linear program example first, and then explain each section of the
+corresponding StochOptFormat file in detail.
 
 Consider a two-stage newsvendor problem. In the first stage, the agent chooses
 `x`, the number of newspapers to buy at a cost \$1/newspaper. In the second
@@ -242,7 +242,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
   "author": "Oscar Dowson",
   "name": "newsvendor",
   "date": "2020-07-10",
-  "description": "An SOF implementation of the classical two-stage newsvendor problem.",
+  "description": "An StochOptFormat implementation of the classical two-stage newsvendor problem.",
   "version": {"major": 0, "minor": 1},
   "root": {
     "name": "root",
@@ -353,8 +353,8 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
 
 ### Explanation
 
-SOF is a JSON document. The problem is stored as a single JSON object. JSON
-objects are key-value mappings enclused by curly braces.
+A StochOptFormat file is a JSON document. The problem is stored as a single JSON
+object. JSON objects are key-value mappings enclosed by curly braces.
 
 The file begins with four self-explanatory optional metadata keys:
 `name::String`, `author::String`, `date::String`, and `description::String`.
