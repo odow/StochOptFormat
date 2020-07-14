@@ -242,7 +242,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
   "author": "Oscar Dowson",
   "name": "newsvendor",
   "date": "2020-07-10",
-  "description": "An StochOptFormat implementation of the classical two-stage newsvendor problem.",
+  "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
   "version": {"major": 0, "minor": 1},
   "root": {
     "name": "root",

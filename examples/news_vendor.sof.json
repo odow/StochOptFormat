@@ -1,7 +1,8 @@
 {
   "author": "Oscar Dowson",
   "name": "newsvendor",
-  "description": "An SOF implementation of the classical two-stage newsvendor problem.",
+  "date": "2020-07-10",
+  "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
   "version": {"major": 0, "minor": 1},
   "root": {
     "name": "root",
