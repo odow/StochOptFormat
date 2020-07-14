@@ -28,7 +28,7 @@ suggestions or comments, please [open an issue](https://github.com/odow/StochOpt
   - [Graphical representation](#graphical-representation)
   - [Problem in StochOptFormat](#problem-in-stochoptformat)
   - [Explanation](#explanation)
-- [Problems, algorithms, and policies](#problems-algorithms-and-policies)
+- [Problems, policies, and algorithms](#problems-policies-and-algorithms)
 - [FAQ](#faq)
 - [References](#references)
 
@@ -94,7 +94,7 @@ In creating StochOptFormat, we wanted to achieve the following:
   represented by an arbitrary scenario tree.
 - We wanted a well-defined notion of what a solution to a stochastic program is.
   (Spoiler alert: it is not the first stage decision. See
-  [Problems, algorithms, and policies](#problems-algorithms-and-policies).)
+  [Problems, policies, and algorithms](#problems-policies-and-algorithms).)
 
 Equally important as the things that we set out to do, is the things that we did
 _not_ set out to do.
@@ -465,7 +465,7 @@ After the optional metadata keys, there are five required keys:
   the realization of the random variable at that node. Note that `support` may
   be an _out-of-sample_ realization, that is, one which is not contained in the
   corresponding `realizations` field of the node. Testing a policy is a larger
-  topic, so we expand on it in the section [Problems, algorithms, and policies](#problems-algorithms-and-policies).
+  topic, so we expand on it in the section [Problems, policies, and algorithms](#problems-policies-and-algorithms).
 
 There is also an optional key, `historical_scenarios::List{List{Object}}`. The
 value of the key is identical to `test_scenarios`, except that these scenarios
@@ -490,14 +490,14 @@ dependence (e.g., autoregressive). Providing historical data allows the modeller
 to experiment with different stochastic processes, without corrupting the
 testing procedure by using the test scenarios to build the model.
 
-## Problems, algorithms, and policies
+## Problems, policies, and algorithms
 
-Now that we now how problems are represented in StochOptFormat, we need to
+Now that we know how problems are represented in StochOptFormat, we need to
 introduce some additional vocabulary.
 
 - Problem
 
-  The datastructure formulated as a StochOptFormat file. Also called _program_
+  The data structure formulated as a StochOptFormat file. Also called _program_
   or _model_. We standardize on _problem_.
 
 - Policy
