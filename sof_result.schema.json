@@ -3,10 +3,10 @@
     "$id": "https://odow.github.io/StochOptFormat/sof_result.schema.json",
     "title": "The schema for an evaluated policy of a StochOptFormat problem.",
     "type": "object",
-    "required": ["problem_md5_checksum", "scenarios"],
+    "required": ["problem_sha265_checksum", "scenarios"],
     "properties": {
-        "problem_md5_checksum": {
-            "description": "The MD5 checksum of the input file used to create the policy.",
+        "problem_sha265_checksum": {
+            "description": "The SHA-256 checksum of the input file used to create the policy.",
             "type": "string"
         },
         "author": {
