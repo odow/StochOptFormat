@@ -1,10 +1,23 @@
-# A simple example reading a StochOptFormat file and solving it via Benders
-# decomposition.
+# TwoStageBenders.jl
 #
-# The code is demonstration only, and does not contain robust checks or many
-# nice error messages, preferring to throw assertion errors.
-
-module TwoStageStochasticPrograms
+# Author
+#   Oscar Dowson
+#
+# Description
+#   A simple example reading a StochOptFormat file and solving it via Benders
+#   decomposition.
+#
+#   The code is intended for pedagogical use. It does not contain robust checks
+#   or nice error messages, preferring to throw assertion errors.
+#
+# Usage
+#   julia TwoStageBenders.jl [problem]
+#   julia TwoStageBenders.jl ../problems/newsvendor.sof.json
+#
+# Notes
+#   You need to install Julia, and have the following packages installed:
+#       Clp, JSON, JSONSchema, and JuMP.
+module TwoStageBenders
 
 import Clp
 import JSON
@@ -255,17 +268,20 @@ export
     train,
     evaluate
 
-end # module TwoStageStochasticPrograms
+end # module TwoStageBenders
 
-
-using .TwoStageStochasticPrograms
-
-problem = TwoStageProblem("news_vendor.sof.json")
-ret = train(problem; iteration_limit = 20)
-solutions = evaluate(problem)
-
-# Check solutions
-@assert solutions[1][1]["objective"] ≈ -10
-@assert solutions[1][2]["objective"] ≈ 15
-@assert solutions[2][2]["objective"] ≈ 15
-@assert solutions[3][2]["objective"] ≈ 13.5
+if endswith(@__FILE__, PROGRAM_FILE)
+    TSSP = TwoStageBenders
+    @assert length(ARGS) == 1
+    filename = ARGS[1]
+    problem = TSSP.TwoStageProblem(filename)
+    ret = TSSP.train(problem; iteration_limit = 20)
+    solutions = TSSP.evaluate(problem)
+    if endswith(filename, "news_vendor.sof.json")
+        # Check solutions
+        @assert solutions[1][1]["objective"] ≈ -10
+        @assert solutions[1][2]["objective"] ≈ 15
+        @assert solutions[2][2]["objective"] ≈ 15
+        @assert solutions[3][2]["objective"] ≈ 13.5
+    end
+end

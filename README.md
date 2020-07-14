@@ -9,8 +9,12 @@ For convenience, we sometimes abbreviate StochOptFormat to _SOF_.
 StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
 available at [`https://odow.github.io/StochOptFormat/sof.schema.json`](https://odow.github.io/StochOptFormat/sof.schema.json).
 
-Example problems and code to read and solve two-stage linear programs in Python
-and Julia is available at the project's [Github repository](https://github.com/odow/StochOptFormat).
+The [examples directory](https://github.com/odow/StochOptFormat/examples) of the
+project's [Github page](https://github.com/odow/StochOptFormat) contains a
+pedagogical implmentation of Benders decomposition for two stage stochastic
+programs in Julia and Python, along with a JSON file for the news-vendor problem
+discussed in this documentation. The code is intended to be a guide, rather than
+a state-of-the-art implementation.
 
 **Authors**
 
