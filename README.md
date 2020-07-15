@@ -523,7 +523,6 @@ introduce some additional vocabulary.
   An algorithm takes a problem as input, and constructs a policy as output.
   Also called _solution method_ or _solver_.
 
-
 ### Evaluating the policy
 
 Comparing two solutions to a determinstic optimization problem is simple: check
@@ -543,12 +542,17 @@ _out-of-sample_ simulation on a finite discrete set of scenarios provided in the
 `test_scenarios` key of a StochOptFormat file.
 
 Solution algorithms should evaluate their policy on each of these scenarios and
-report:
+report the following for each node in each scenario:
 
-- The cumulative objective value of each node in the scenario.
-- The objective for each node in the scenario.
-- All primal (and dual, if applicable) values for the decision variables in each
-  node of the scenario.
+- The objective value of the subproblem excluding any cost-to-go terms.
+- The primal solution for all decision variables in the subproblem.
+- The dual solution (if one exists) for all constraints in the subproblem.
+
+Solutions should be outputted to a JSON file that conforms to the schema
+available at [`https://odow.github.io/StochOptFormat/sof_result.schema.json`](https://odow.github.io/StochOptFormat/sof_result.schema.json).
+Most notably, the result file must include the [SHA-256 checksum](https://en.wikipedia.org/wiki/SHA-2)
+of the problem file used to generate the policy to ensure that the two files can
+be linked.
 
 Evaluating the solution on a finite list of scenarios solves the intractability
 problem, but it does not solve the user's risk perference problem. However, with

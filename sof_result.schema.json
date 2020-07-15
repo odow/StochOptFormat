@@ -1,0 +1,52 @@
+{
+    "$schema": "https://json-schema.org/schema#",
+    "$id": "https://odow.github.io/StochOptFormat/sof_result.schema.json",
+    "title": "The schema for an evaluated policy of a StochOptFormat problem.",
+    "type": "object",
+    "required": ["problem_sha256_checksum", "scenarios"],
+    "properties": {
+        "problem_sha256_checksum": {
+            "description": "The SHA-256 checksum of the input file used to create the policy.",
+            "type": "string"
+        },
+        "author": {
+            "description": "The author of the policy for citation purposes.",
+            "type": "string"
+        },
+        "date": {
+            "description": "The date that the policy was created [yyyy-mm-dd].",
+            "type": "string"
+        },
+        "description": {
+            "description": "A human-readable description of the algorithm used to train the policy.",
+            "type": "string"
+        },
+        "scenarios": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["objective", "primal"],
+                    "properties": {
+                        "objective": {
+                            "type": "number"
+                        },
+                        "primal": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number"
+                            }
+                        },
+                        "dual": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
