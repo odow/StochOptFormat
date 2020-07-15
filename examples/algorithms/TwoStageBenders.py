@@ -22,9 +22,15 @@ import hashlib
 import json
 import jsonschema
 import math
+import os
 from pulp import *
 
 class TwoStageProblem:
+    _dir = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
+    schema_filename = os.path.join(_dir, 'sof.schema.json')
+    result_schema_filename = os.path.join(_dir, 'sof_result.schema.json')
 
     def __init__(self, filename, validate = True):
         with open(filename, 'rb') as io:
@@ -99,13 +105,17 @@ class TwoStageProblem:
             'problem_sha256_checksum': self.sha256,
             'scenarios': solutions
         }
+        with open(self.result_schema_filename, 'r') as io:
+            schema = json.load(io)
+        jsonschema.validate(instance = solution, schema = schema)
+
         if filename is not None:
             with open(filename, 'w') as io:
                 json.dump(solution, io)
         return solution
 
     def _validate_stochoptformat(self):
-        with open('../sof.schema.json', 'r') as io:
+        with open(self.schema_filename, 'r') as io:
             schema = json.load(io)
         jsonschema.validate(instance = self.data, schema = schema)
 
@@ -250,7 +260,7 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     problem = TwoStageProblem(filename)
     problem.train(iteration_limit = 20)
-    solutions = problem.evaluate(filename = 'sol.json')
+    solutions = problem.evaluate(filename = 'sol_py.json')
     if filename.endswith('news_vendor.sof.json'):
         # Check solutions
         assert(solutions['scenarios'][0][0]['objective'] == -10)

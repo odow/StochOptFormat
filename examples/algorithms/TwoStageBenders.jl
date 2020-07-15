@@ -26,6 +26,12 @@ import JuMP
 import Printf
 import SHA
 
+const SCHEMA_FILENAME =
+    joinpath(dirname(dirname(@__DIR__)), "sof.schema.json")
+
+const RESULT_SCHEMA_FILENAME =
+    joinpath(dirname(dirname(@__DIR__)), "sof_result.schema.json")
+
 struct TwoStageProblem
     sha256::String
     first::JuMP.Model
@@ -47,7 +53,7 @@ function TwoStageProblem(filename::String; validate::Bool = true)
     end
     data = JSON.parsefile(filename)
     if validate
-        _validate_stochoptformat(data)
+        _validate(data; schema_filename = SCHEMA_FILENAME)
     end
     @assert(data["version"]["major"] == 0)
     @assert(data["version"]["minor"] == 1)
@@ -63,9 +69,7 @@ function TwoStageProblem(filename::String; validate::Bool = true)
     return problem
 end
 
-function _validate_stochoptformat(
-    data::Dict; schema_filename = "../sof.schema.json"
-)
+function _validate(data::Dict; schema_filename::String)
     schema = JSONSchema.Schema(JSON.parsefile(schema_filename))
     return JSONSchema.validate(data, schema)
 end
@@ -274,6 +278,7 @@ function evaluate(
         "problem_sha256_checksum" => problem.sha256,
         "scenarios" => solutions,
     )
+    _validate(solution; schema_filename = RESULT_SCHEMA_FILENAME)
     if filename !== nothing
         open(filename, "w") do io
             write(io, JSON.json(solution))
@@ -295,7 +300,7 @@ if endswith(@__FILE__, PROGRAM_FILE)
     filename = ARGS[1]
     problem = TSSP.TwoStageProblem(filename)
     ret = TSSP.train(problem; iteration_limit = 20)
-    solutions = TSSP.evaluate(problem; filename = "sol.jl.json")
+    solutions = TSSP.evaluate(problem; filename = "sol_jl.json")
     if endswith(filename, "news_vendor.sof.json")
         # Check solutions
         @assert solutions["scenarios"][1][1]["objective"] ≈ -10

@@ -3,9 +3,9 @@
     "$id": "https://odow.github.io/StochOptFormat/sof_result.schema.json",
     "title": "The schema for an evaluated policy of a StochOptFormat problem.",
     "type": "object",
-    "required": ["problem_sha265_checksum", "scenarios"],
+    "required": ["problem_sha256_checksum", "scenarios"],
     "properties": {
-        "problem_sha265_checksum": {
+        "problem_sha256_checksum": {
             "description": "The SHA-256 checksum of the input file used to create the policy.",
             "type": "string"
         },
@@ -27,11 +27,8 @@
                 "type": "array",
                 "items": {
                     "type": "object",
-                    "required": ["node", "objective", "primal"],
+                    "required": ["objective", "primal"],
                     "properties": {
-                        "node": {
-                            "type": "string"
-                        },
                         "objective": {
                             "type": "number"
                         },
