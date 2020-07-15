@@ -16,8 +16,9 @@
 #
 # Notes
 #   You need to install python, and have the following packages installed:
-#       jsonschema, and pulp.
+#       hashlib, jsonschema, and pulp.
 
+import hashlib
 import json
 import jsonschema
 import math
@@ -26,6 +27,8 @@ from pulp import *
 class TwoStageProblem:
 
     def __init__(self, filename, validate = True):
+        with open(filename, 'rb') as io:
+            self.sha256 = hashlib.sha256(io.read()).hexdigest()
         with open(filename, 'r') as io:
             self.data = json.load(io)
         if validate:
@@ -77,7 +80,7 @@ class TwoStageProblem:
         print('Terminating training: iteration limit')
         return
 
-    def evaluate(self, scenarios = None):
+    def evaluate(self, scenarios = None, filename = None):
         if scenarios is None:
             scenarios = self.data['test_scenarios']
         solutions = []
@@ -92,7 +95,14 @@ class TwoStageProblem:
                 incoming_state, scenario[1]['support']
             )
             solutions.append([first_sol, second_sol])
-        return solutions
+        solution = {
+            'problem_sha256_checksum': self.sha256,
+            'scenarios': solutions
+        }
+        if filename is not None:
+            with open(filename, 'w') as io:
+                json.dump(solution, io)
+        return solution
 
     def _validate_stochoptformat(self):
         with open('../sof.schema.json', 'r') as io:
@@ -234,17 +244,17 @@ class TwoStageProblem:
         else:
             self.first['subproblem'] += self.first['theta'] >= cut_term
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import sys
     assert(len(sys.argv) == 2)
     filename = sys.argv[1]
     problem = TwoStageProblem(filename)
     problem.train(iteration_limit = 20)
-    solutions = problem.evaluate()
+    solutions = problem.evaluate(filename = 'sol.json')
     if filename.endswith('news_vendor.sof.json'):
         # Check solutions
-        assert(solutions[0][0]['objective'] == -10)
-        assert(solutions[0][1]['objective'] == 15)
-        assert(solutions[1][1]['objective'] == 15)
-        assert(solutions[2][1]['objective'] == 13.5)
+        assert(solutions['scenarios'][0][0]['objective'] == -10)
+        assert(solutions['scenarios'][0][1]['objective'] == 15)
+        assert(solutions['scenarios'][1][1]['objective'] == 15)
+        assert(solutions['scenarios'][2][1]['objective'] == 13.5)
 

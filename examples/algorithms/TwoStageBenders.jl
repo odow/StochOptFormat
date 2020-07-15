@@ -16,7 +16,7 @@
 #
 # Notes
 #   You need to install Julia, and have the following packages installed:
-#       Clp, JSON, JSONSchema, and JuMP.
+#       Clp, JSON, JSONSchema, JuMP, and SHA.
 module TwoStageBenders
 
 import Clp
@@ -295,12 +295,12 @@ if endswith(@__FILE__, PROGRAM_FILE)
     filename = ARGS[1]
     problem = TSSP.TwoStageProblem(filename)
     ret = TSSP.train(problem; iteration_limit = 20)
-    solutions = TSSP.evaluate(problem)
+    solutions = TSSP.evaluate(problem; filename = "sol.jl.json")
     if endswith(filename, "news_vendor.sof.json")
         # Check solutions
-        @assert solutions[1][1]["objective"] ≈ -10
-        @assert solutions[1][2]["objective"] ≈ 15
-        @assert solutions[2][2]["objective"] ≈ 15
-        @assert solutions[3][2]["objective"] ≈ 13.5
+        @assert solutions["scenarios"][1][1]["objective"] ≈ -10
+        @assert solutions["scenarios"][1][2]["objective"] ≈ 15
+        @assert solutions["scenarios"][2][2]["objective"] ≈ 15
+        @assert solutions["scenarios"][3][2]["objective"] ≈ 13.5
     end
 end
