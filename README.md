@@ -11,7 +11,7 @@ available at [`https://odow.github.io/StochOptFormat/sof.schema.json`](https://o
 
 The [examples directory](https://github.com/odow/StochOptFormat/examples) of the
 project's [Github page](https://github.com/odow/StochOptFormat) contains a
-pedagogical implmentation of Benders decomposition for two stage stochastic
+pedagogical implementation of Benders decomposition for two stage stochastic
 programs in Julia and Python, along with a JSON file for the news-vendor problem
 discussed in this documentation. The code is intended to be a guide, rather than
 a state-of-the-art implementation.
