@@ -34,6 +34,7 @@ suggestions or comments, please [open an issue](https://github.com/odow/StochOpt
   - [Explanation](#explanation)
 - [Problems, policies, and algorithms](#problems-policies-and-algorithms)
 - [FAQ](#faq)
+- [Implementations](#implementations)
 - [References](#references)
 
 ## Motivation and design principles
@@ -649,6 +650,19 @@ application of stochastic optimization in real life.
 - Q: Why haven't you written an interface to ⟨INSERT LANGUAGE HERE⟩ yet?
 
   A: Does ⟨INSERT LANGUAGE HERE⟩ have a JSON reader? Just import the file!
+
+## Implementations
+
+- Pedagogical Python code for solving two-stage stochastic linear programs using
+  Benders decomposition and [PuLP](https://coin-or.github.io/pulp/) is available
+  in the [`/examples` directory](https://github.com/odow/StochOptFormat/tree/master/examples).
+
+- Pedagogical Julia code for solving two-stage stochastic linear programs using
+  Benders decomposition and [JuMP](https://jump.dev) is available in the
+  [`/examples` directory](https://github.com/odow/StochOptFormat/tree/master/examples).
+
+- Experimental support for reading and writing arbitrary StochOptFormat files is
+  available in the [SDDP.jl](https://odow.github.io/SDDP.jl/latest) libary.
 
 ## References
 
