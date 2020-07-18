@@ -621,7 +621,7 @@ application of stochastic optimization in real life.
 
 - Q: I don't like JSON.
 
-  A: We're open to better ideas. JSON is universal support in every major
+  A: We're open to better ideas. JSON has universal support in every major
   programming language, and is human-readable(-ish). For now, we choose JSON and
   we will revisit the question if convincing data is presented to show that the
   approach is not viable.
@@ -661,8 +661,8 @@ application of stochastic optimization in real life.
   Benders decomposition and [JuMP](https://jump.dev) is available in the
   [`/examples` directory](https://github.com/odow/StochOptFormat/tree/master/examples).
 
-- Experimental support for reading and writing arbitrary StochOptFormat files is
-  available in the [SDDP.jl](https://odow.github.io/SDDP.jl/latest) libary.
+- Experimental support for reading and writing StochOptFormat files is available 
+  in the [SDDP.jl](https://odow.github.io/SDDP.jl/latest) libary.
 
 ## References
 
