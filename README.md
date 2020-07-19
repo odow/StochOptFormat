@@ -9,7 +9,7 @@ For convenience, we sometimes abbreviate StochOptFormat to _SOF_.
 StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
 available at [`https://odow.github.io/StochOptFormat/sof.schema.json`](https://odow.github.io/StochOptFormat/sof.schema.json).
 
-The [examples directory](https://github.com/odow/StochOptFormat/examples) of the
+The [examples directory] of the
 project's [Github page](https://github.com/odow/StochOptFormat) contains a
 pedagogical implementation of Benders decomposition for two stage stochastic
 programs in Julia and Python, along with a JSON file for the news-vendor problem
@@ -77,11 +77,10 @@ multistage stochastic programs. StochOptFormat is a serialization of this data
 structure into the JSON file format, hence allowing easy access from almost all
 major computer languages.
 
-StochOptFormat is inspired by our work on [JuMP](https://jump.dev) and
-[SDDP.jl](https://odow.github.io/SDDP.jl/latext). However, it is not exclusive
-to Julia or stochastic dual dynamic programming. For example, this format makes
-it possible to read multistage stochastic programming problems into Python and
-solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
+StochOptFormat is inspired by our work on [JuMP] and [SDDP.jl]. However, it is 
+not exclusive to Julia or stochastic dual dynamic programming. For example, this 
+format makes it possible to read multistage stochastic programming problems into 
+Python and solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
 We have not implemented the code yet because this is not our area of expertise.
 
 In creating StochOptFormat, we wanted to achieve the following:
@@ -588,8 +587,8 @@ application of stochastic optimization in real life.
 
 - Q: You don't expect me to write these by hand do you?
 
-  A: No. We expect high-level libraries like [SDDP.jl](https://github.com/odow/SDDP.jl)
-  to do the reading and writing for you.
+  A: No. We expect high-level libraries like [SDDP.jl] to do the reading and 
+  writing for you.
 
 - Q: What happened to SMPS?
 
@@ -654,15 +653,13 @@ application of stochastic optimization in real life.
 ## Implementations
 
 - Pedagogical Python code for solving two-stage stochastic linear programs using
-  Benders decomposition and [PuLP](https://coin-or.github.io/pulp/) is available
-  in the [`/examples` directory](https://github.com/odow/StochOptFormat/tree/master/examples).
+  Benders decomposition and [PuLP] is available in the [examples directory].
 
 - Pedagogical Julia code for solving two-stage stochastic linear programs using
-  Benders decomposition and [JuMP](https://jump.dev) is available in the
-  [`/examples` directory](https://github.com/odow/StochOptFormat/tree/master/examples).
+  Benders decomposition and [JuMP] is available in the [examples directory].
 
 - Experimental support for reading and writing StochOptFormat files is available 
-  in the [SDDP.jl](https://odow.github.io/SDDP.jl/latest) libary.
+  in the [SDDP.jl] libary.
 
 ## References
 
@@ -682,3 +679,9 @@ application of stochastic optimization in real life.
 
 [4] Gassmann, H. I., & Kristjánsson, B. (2008). The SMPS format explained. IMA
   journal of management mathematics, 19(4), 347-377. [doi: 10.1093/imaman/dpm007](http://maximal.net/resources/GassmannKristjansson_dpm007v1.pdf)
+
+
+[examples directory]: https://github.com/odow/StochOptFormat/tree/master/examples
+[JuMP]: https://jump.dev
+[PuLP]: https://coin-or.github.io/pulp/
+[SDDP.jl]: https://odow.github.io/SDDP.jl/latest
