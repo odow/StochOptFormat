@@ -106,6 +106,17 @@ _not_ set out to do.
   - We did not try to incorporate chance constraints.
   - We did not try to incorporate continuous random variables.
   - We did not try to incorporate decision-hazard nodes.
+  
+Finally, StochOptFormat is not an algebraic modeling language for stochastic 
+programming. Instead, it is an instance format [5].
+
+You should not write StochOptFormat files by hand. Nor should you need to 
+consider the exact layout of the file when formulating your model. The analog is
+the MPS file format. No one writes MPS files by hand, and most people are 
+probably unaware of the exact structure and syntax of an MPS file. Instead, we 
+use high-level algebraic modeling languages like [JuMP] to build models, and we 
+expect our solvers to handle the difficulty of reading and writing the MPS 
+files.
 
 ## Example
 
@@ -664,22 +675,26 @@ application of stochastic optimization in real life.
 ## References
 
 [1] Dowson, O. (2020). The policy graph decomposition of multistage stochastic
-  programming problems. Networks, 71(1), 3-23.
+  programming problems. _Networks_, 71(1), 3-23.
   [doi: 10.1002/net.21932](https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932)
   [[preprint]](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)
 
-[2] Legat, B., Dowson, O., Garcia, J.D., Lubin, M. (2020). MathOptInterface: a
-  data structure for mathematical optimization problems.
+[2] Legat, B., Dowson, O., Garcia, J.D. and Lubin, M. (2020). MathOptInterface: 
+  a data structure for mathematical optimization problems.
   [[preprint]](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
   [[repository]](https://github.com/jump-dev/MathOptFormat)
 
-[3] Fourer, R., Gassmann, H.I., Ma, J. et al. An XML-based schema for stochastic
-  programs. Ann Oper Res 166, 313 (2009).
-  [doi:10.1007/s10479-008-0419-x](https://doi.org/10.1007/s10479-008-0419-x)
+[3] Fourer, R., Gassmann, H.I., Ma, J. and Martin, R.K. (2009). An XML-based schema for 
+  stochastic programs. _Ann Oper Res_, 166, 313-337.
+  [doi: 10.1007/s10479-008-0419-x](https://link.springer.com/content/pdf/10.1007/s10479-008-0419-x.pdf)
 
-[4] Gassmann, H. I., & Kristjánsson, B. (2008). The SMPS format explained. IMA
-  journal of management mathematics, 19(4), 347-377. [doi: 10.1093/imaman/dpm007](http://maximal.net/resources/GassmannKristjansson_dpm007v1.pdf)
+[4] Gassmann, H.I. and Kristjánsson, B. (2008). The SMPS format explained. _IMA
+  Journal of Management Mathematics_, 19(4), 347-377. [doi: 10.1093/imaman/dpm007](http://maximal.net/resources/GassmannKristjansson_dpm007v1.pdf)
 
+[5] Gassmann, H.I., Ma, J. and Martin, R.K. (2011). Instance Formats for Mathematical 
+  Optimization Models. In _Wiley Encyclopedia of Operations Research and Management 
+  Science_ (eds J.J. Cochran, L.A. Cox, P. Keskinocak, J.P. Kharoufeh and J.C. Smith). 
+  [doi: 10.1002/9780470400531.eorms0411](https://doi.org/10.1002/9780470400531.eorms0411)
 
 [examples directory]: https://github.com/odow/StochOptFormat/tree/master/examples
 [JuMP]: https://jump.dev
