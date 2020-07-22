@@ -37,7 +37,7 @@ struct TwoStageProblem
     first::JuMP.Model
     second::JuMP.Model
     state_variables::Set{String}
-    test_scenarios::Vector{Vector{Dict{String, Any}}}
+    test_scenarios::Vector{Dict{String, Any}}
 end
 
 """
@@ -260,7 +260,8 @@ function evaluate(
     filename::Union{Nothing, String} = nothing
 )
     solutions = Vector{Dict{String, Any}}[]
-    for scenario in scenarios
+    for s_dict in scenarios
+        scenario = s_dict["scenario"]
         @assert length(scenario) == 2
         first_sol = _solve_first_stage(problem)
         incoming_state = Dict(
