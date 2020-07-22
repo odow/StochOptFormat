@@ -88,24 +88,39 @@
     {"from": "first_stage", "to": "second_stage", "probability": 1.0}
   ],
   "test_scenarios": [
-    [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 10.0}}
-    ], [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 14.0}}
-    ], [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 9.0}}
-    ]
+    {
+      "probability": 0.4,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 10.0}}
+      ]
+    }, {
+      "probability": 0.3,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 14.0}}
+      ]
+    }, {
+      "probability": 0.3,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 9.0}}
+      ]
+    }
   ],
   "historical_scenarios": [
-    [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 10.0}}
-    ], [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 14.0}}
-    ]
+    {
+      "probability": 0.5,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 10.0}}
+      ]
+    }, {
+      "probability": 0.5,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 14.0}}
+      ]
+    }
   ]
 }

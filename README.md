@@ -343,25 +343,40 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
     {"from": "first_stage", "to": "second_stage", "probability": 1.0}
   ],
   "test_scenarios": [
-    [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 10.0}}
-    ], [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 14.0}}
-    ], [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 9.0}}
-    ]
+    {
+      "probability": 0.4,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 10.0}}
+      ]
+    }, {
+      "probability": 0.3,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 14.0}}
+      ]
+    }, {
+      "probability": 0.3,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 9.0}}
+      ]
+    }
   ],
   "historical_scenarios": [
-    [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 10.0}}
-    ], [
-      {"node": "first_stage", "support": {}},
-      {"node": "second_stage", "support": {"d": 14.0}}
-    ]
+    {
+      "probability": 0.5,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 10.0}}
+      ]
+    }, {
+      "probability": 0.5,
+      "scenario": [
+        {"node": "first_stage", "support": {}},
+        {"node": "second_stage", "support": {"d": 14.0}}
+      ]
+    }
   ]
 }
 ```
@@ -471,33 +486,37 @@ After the optional metadata keys, there are five required keys:
 
     The nominal probability of transitioning from node `from` to node `to`.
 
-- `test_scenarios::List{List{Object}}`
+- `test_scenarios::List{Object}`
 
   Scenarios to be used to evaluate a policy. `test_scenarios` is a list,
-  containing one element for each scenario in the test set. Each scenario is a
-  list of objects. Each object has two required nodes: `node::String` and
-  `support::Object`. `node` is the name of the node to visit, and `support` is
-  the realization of the random variable at that node. Note that `support` may
-  be an _out-of-sample_ realization, that is, one which is not contained in the
-  corresponding `realizations` field of the node. Testing a policy is a larger
-  topic, so we expand on it in the section [Problems, policies, and algorithms](#problems-policies-and-algorithms).
+  containing one element for each scenario in the test set. Each element is an
+  object with two fields: `probability::Number` and `scenario::List{Object}`.
+  The `probability` gives the nominal probability associated with the scenario.
+  Each `scenario` is a list of objects. Each object has two required nodes:
+  `node::String` and `support::Object`. `node` is the name of the node to visit,
+  and `support` is the realization of the random variable at that node. Note
+  that `support` may be an _out-of-sample_ realization, that is, one which is
+  not contained in the corresponding `realizations` field of the node. Testing a
+  policy is a larger topic, so we expand on it in the section
+  [Problems, policies, and algorithms](#problems-policies-and-algorithms).
 
-There is also an optional key, `historical_scenarios::List{List{Object}}`. The
+There is also an optional key, `historical_scenarios::List{Object}`. The
 value of the key is identical to `test_scenarios`, except that these scenarios
 should be any historical data that was used when first constructing the problem.
 This allows modellers to experiment with different representations of the
 underlying stochastic process.
 
 In our example, the second stage realizations have probilities of 0.6 and 0.4.
-However, there are only two `historical_scenarios`, so one may infer that
-another reasonable model would be to give probabilities of 0.5 and 0.5.
+However, there are two `historical_scenarios`, each with probability 0.5, so one
+may infer that another reasonable model would be to give the node realizations
+probabilities of 0.5 and 0.5.
 
 Providing both `realizations` and `historical_scenarios` allows us to to do two
 things:
 
-1. Solve a model _as formulated by someone else_.
-2. Experiment with different formulations of the same sequential decision
-  problem using a standard dataset.
+1. Solve a problem _as formulated by someone else_.
+2. Experiment with different formulations for the stochasticity of the same
+   underlying decision problem.
 
 For example, we can build a linear policy graph assuming that the random
 variables are stagewise independent. However, the historical data may have some

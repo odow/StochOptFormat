@@ -72,15 +72,21 @@
             "items": {
                 "$ref": "#/definitions/edge"
             }
+        },
+        "test_scenarios": {
+            "description": "Out-of-sample scenarios used to evaluate the policy.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/scenario"
+            }
+        },
+        "historical_scenarios": {
+            "description": "Optional scenarios used when building the problem. Allows modellers to experiment with different stochastic processes.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/scenario"
+            }
         }
-    },
-    "test_scenarios": {
-        "description": "Out-of-sample scenarios used to evaluate the policy.",
-        "$ref": "#/definitions/scenarios"
-    },
-    "historical_scenarios": {
-        "description": "Optional scenarios used when building the problem. Allows modellers to experiment with different stochastic processes.",
-        "$ref": "#/definitions/scenarios"
     },
     "definitions": {
         "edge": {
@@ -157,21 +163,28 @@
                 }
             }
         },
-        "scenarios": {
-            "type": "array",
-            "items": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "required": ["node", "support"],
-                    "properties": {
-                        "node": {
-                            "type": "string"
-                        },
-                        "support": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
+        "scenario": {
+            "required": ["probability", "scenario"],
+            "properties": {
+                "probability": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "scenario": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["node", "support"],
+                        "properties": {
+                            "node": {
+                                "type": "string"
+                            },
+                            "support": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "number"
+                                }
                             }
                         }
                     }

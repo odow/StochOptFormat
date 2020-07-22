@@ -90,7 +90,8 @@ class TwoStageProblem:
         if scenarios is None:
             scenarios = self.data['test_scenarios']
         solutions = []
-        for scenario in scenarios:
+        for s_dict in scenarios:
+            scenario = s_dict['scenario']
             assert(len(scenario) == 2)
             first_sol = self._solve_first_stage()
             incoming_state = {
@@ -117,7 +118,7 @@ class TwoStageProblem:
     def _validate_stochoptformat(self):
         with open(self.schema_filename, 'r') as io:
             schema = json.load(io)
-        jsonschema.validate(instance = self.data, schema = schema)
+        return jsonschema.validate(instance = self.data, schema = schema)
 
     def _get_stage_names(self):
         data = self.data
