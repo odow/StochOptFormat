@@ -1,0 +1,19 @@
+
+name: Test Julia
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        julia-version: [1]
+        julia-arch: [x86]
+    steps:
+      - uses: actions/checkout@v1.0.0
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: ${{ matrix.julia-version }}
+      - name: Install dependencies
+        run: julia --project=examples/lang-julia -e 'using Pkg; Pkg.instantiate()'
+      - name: Test
+        run: julia --project=examples/lang-julia --color=yes examples/lang-julia/TwoStageBenders.jl examples/problems/news_vendor.sof.json
