@@ -1,0 +1,195 @@
+{
+    "$schema": "https://json-schema.org/schema#",
+    "$id": "https://odow.github.io/StochOptFormat/sof.schema.json",
+    "title": "The schema for a policy graph representation of a multistage stochastic program",
+    "type": "object",
+    "required": ["version", "root", "nodes", "edges", "test_scenarios"],
+    "properties": {
+        "version": {
+            "description": "The version of StochOptFormat that this schema validates against.",
+            "type": "object",
+            "required": ["minor", "major"],
+            "properties": {
+                "minor": {
+                    "const": 1
+                },
+                "major": {
+                    "const": 0
+                }
+            }
+        },
+        "name": {
+            "description": "The name of the problem.",
+            "type": "string"
+        },
+        "author": {
+            "description": "The author of the problem for citation purposes.",
+            "type": "string"
+        },
+        "date": {
+            "description": "The date that the problem was created [yyyy-mm-dd].",
+            "type": "string"
+        },
+        "description": {
+            "description": "A human-readable description of the problem.",
+            "type": "string"
+        },
+        "root": {
+            "description": "An object for the root node.",
+            "type": "object",
+            "required": ["name", "state_variables"],
+            "properties": {
+                "name": {
+                    "description": "The name of the root node, to be used in `edges`.",
+                    "type": "string"
+                },
+                "state_variables": {
+                    "description": "A vector of state variables.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "required": ["initial_value"],
+                        "properties": {
+                            "initial_value": {
+                                "description": "The value of the state variable at the root node.",
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "nodes": {
+            "description": "An object containing the nodes in the policy graph.",
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/node"
+            }
+        },
+        "edges": {
+            "description": "An array of edges in the policy graph.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/edge"
+            }
+        },
+        "test_scenarios": {
+            "description": "Out-of-sample scenarios used to evaluate the policy.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/scenario"
+            }
+        },
+        "historical_scenarios": {
+            "description": "Optional scenarios used when building the problem. Allows modellers to experiment with different stochastic processes.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/scenario"
+            }
+        }
+    },
+    "definitions": {
+        "edge": {
+            "description": "An edge in the policy graph, describing a transition from node `from` to node `to` with probability `probability`.",
+            "type": "object",
+            "required": ["from", "to", "probability"],
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "probability": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                }
+            }
+        },
+        "node": {
+            "description": "A node in the policy graph.",
+            "type": "object",
+            "required": [
+                "state_variables", "random_variables", "subproblem", "realizations"
+            ],
+            "properties": {
+                "state_variables": {
+                    "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the subproblem.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "required": ["in", "out"],
+                        "properties": {
+                            "in": {
+                                "type": "string"
+                            },
+                            "out": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "random_variables": {
+                    "description": "An array containing the names of the random variables in the subproblem.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subproblem": {
+                    "description": "The subproblem in MathOptFormat.",
+                    "$ref": "https://jump.dev/MathOptFormat/mof.0.4.schema.json"
+                },
+                "realizations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["probability", "support"],
+                        "properties": {
+                            "probability": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                            },
+                            "support": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "scenario": {
+            "required": ["probability", "scenario"],
+            "properties": {
+                "probability": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "scenario": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["node", "support"],
+                        "properties": {
+                            "node": {
+                                "type": "string"
+                            },
+                            "support": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
