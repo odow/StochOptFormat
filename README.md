@@ -263,25 +263,28 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
     "name": "root",
     "state_variables": {
       "x": {"initial_value": 0.0}
-    }
+    },
+    "successors": [
+      {"node": "first_stage", "probability": 1.0}
+    ]
   },
   "nodes": {
     "first_stage": {
       "subproblem": "first_stage_subproblem",
-      "realizations": []
+      "realizations": [],
+      "successors": [
+        {"node": "second_stage", "probability": 1.0}
+      ]
     },
     "second_stage": {
       "subproblem": "second_stage_subproblem",
       "realizations": [
         {"probability": 0.4, "support": {"d": 10.0}},
         {"probability": 0.6, "support": {"d": 14.0}}
-      ]
+      ],
+      "successors": []
     }
   },
-  "edges": [
-    {"from": "root", "to": "first_stage", "probability": 1.0},
-    {"from": "first_stage", "to": "second_stage", "probability": 1.0}
-  ],
   "subproblems": {
     "first_stage_subproblem": {
       "state_variables": {
@@ -401,7 +404,7 @@ Note: In the following, `name::String` means that the key of an object is `name`
 and the value should be of type `String`. `::List{Object}` means that the type
 is a `List`, and elements of the list are `Object`s.
 
-After the optional metadata keys, there are five required keys:
+After the optional metadata keys, there are four required keys:
 
 - `version::Object`
 
@@ -428,6 +431,12 @@ After the optional metadata keys, there are five required keys:
     - `initial_value::Number`
 
       The value of the state variable at the root node.
+
+  - `successors::List{Object}`
+
+    The list of edges exiting the root node. Each object has two keys,
+    `node::String` and `probability::Number` which give the probability of
+    transitioning from the root node to `node`.
 
 - `nodes::Object`
 
@@ -458,22 +467,11 @@ After the optional metadata keys, there are five required keys:
       `random_variables`, and the values are the value of the random variable in
       that realization.
 
-- `edges::List{Object}`
+  - `successors::List{Object}`
 
-  A list of objects with one element for each edge in the policy graph. Each
-  object has three required keys:
-
-  - `from::String`
-
-    The name of the node that the edge exits.
-
-  - `to::String`
-
-    The name of the node that the edge enters. This cannot be the root node.
-
-  - `probability::Number`
-
-    The nominal probability of transitioning from node `from` to node `to`.
+    The list of edges exiting the node. Each object has two keys, `node::String`
+    and `probability::Number` which give the probability of transitioning from
+    the current node to `node`.
 
 - `subproblems::Object`
 
@@ -625,9 +623,9 @@ test scenarios drawn from the same distribution as the validation data.
   our format requires T subproblems, a list of the state variables, and a
   sequence of edges. Of those things, only the list of edges would be
   superfluous in a purely T-stage format. So, for the sake of a list of objects
-  like `{"from": "1", "to": "2", "probability": 1}`, we get a format that
-  trivially extends to infinite horizon problems and problems with a stochastic
-  process that is not stagewise independent.
+  like `{"node": "1", "probability": 1}`, we get a format that trivially extends
+  to infinite horizon problems and problems with a stochastic process that is
+  not stagewise independent.
 
 - Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
 

@@ -123,19 +123,16 @@ class TwoStageProblem:
     def _get_stage_names(self):
         data = self.data
         assert(len(data['nodes']) == 2)
-        assert(len(data['edges']) == 2)
-        edge_1, edge_2 = data['edges']
+        assert(len(data['root']['successors']) == 1)
+        edge_1 = data['root']['successors'][0]
         assert(edge_1['probability'] == 1.0)
+        first_node = edge_1['node']
+        assert(len(data['nodes'][first_node]['successors']) == 1)
+        edge_2 = data['nodes'][first_node]['successors'][0]
         assert(edge_2['probability'] == 1.0)
-        first, second = '', ''
-        if edge_1['from'] == data['root']['name']:
-            assert(edge_2['from'] != data['root']['name'])
-            assert(edge_1['to'] == edge_2['from'])
-            return edge_1['to'], edge_2['to']
-        else:
-            assert(edge_2['from'] == data['root']['name'])
-            assert(edge_2['to'] == edge_1['from'])
-            return edge_2['to'], edge_1['to']
+        second_node = edge_2['node']
+        assert(len(data['nodes'][second_node]['successors']) == 0)
+        return first_node, second_node
 
     def _mathoptformat_to_pulp(self, name):
         node = self.data['nodes'][name]

@@ -89,20 +89,16 @@ end
 
 function _get_stage_names(data::Dict)
     @assert length(data["nodes"]) == 2
-    @assert length(data["edges"]) == 2
-    edge_1, edge_2 = data["edges"]
+    @assert length(data["root"]["successors"]) == 1
+    edge_1 = data["root"]["successors"][1]
     @assert edge_1["probability"] == 1.0
+    first_node = edge_1["node"]
+    @assert length(data["nodes"][first_node]["successors"]) == 1
+    edge_2 = data["nodes"][first_node]["successors"][1]
     @assert edge_2["probability"] == 1.0
-    first, second = "", ""
-    if edge_1["from"] == data["root"]["name"]
-        @assert edge_2["from"] != data["root"]["name"]
-        @assert edge_1["to"] == edge_2["from"]
-        return edge_1["to"], edge_2["to"]
-    else
-        @assert edge_2["from"] == data["root"]["name"]
-        @assert edge_2["to"] == edge_1["from"]
-        return edge_2["to"], edge_1["to"]
-    end
+    second_node = edge_2["node"]
+    @assert length(data["nodes"][second_node]["successors"]) == 0
+    return first_node, second_node
 end
 
 function _mathoptformat_to_jump(data, name)
