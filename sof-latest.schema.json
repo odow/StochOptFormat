@@ -37,12 +37,8 @@
         "root": {
             "description": "An object for the root node.",
             "type": "object",
-            "required": ["name", "state_variables", "successors"],
+            "required": ["state_variables", "successors"],
             "properties": {
-                "name": {
-                    "description": "The name of the root node, to be used in `edges`.",
-                    "type": "string"
-                },
                 "state_variables": {
                     "description": "A vector of state variables.",
                     "type": "object",

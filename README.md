@@ -260,7 +260,6 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
   "version": {"major": 0, "minor": 2},
   "root": {
-    "name": "root",
     "state_variables": {
       "x": {"initial_value": 0.0}
     },
@@ -408,19 +407,15 @@ After the optional metadata keys, there are four required keys:
 
 - `version::Object`
 
-  An object describing the minimum version of MathOptFormat needed to parse
+  An object describing the minimum version of StochOptFormat needed to parse
   the file. This is included to safeguard against later revisions. It contains
-  two keys: `major` and `minor`. These keys should be interpreted using
+  two required keys: `major` and `minor`. These keys should be interpreted using
   [SemVer](https://semver.org).
 
 - `root::Object`
 
-  An object describing the root node of the policy graph. It has two required
-  keys:
-
-  - `name::String`
-
-    A unique string name for the root node to distinguish it from other nodes.
+  An object describing the root node of the policy graph. It has the following
+  required keys:
 
   - `state_variables::Object`
 
@@ -441,8 +436,8 @@ After the optional metadata keys, there are four required keys:
 - `nodes::Object`
 
   An object mapping the name of each node of the policy graph (excluding the
-  root node) to an object describing the node. Each object has two required
-  keys:
+  root node) to an object describing the node. Each object has the following
+  required keys:
 
   - `subproblem::String`
 
@@ -503,7 +498,7 @@ After the optional metadata keys, there are four required keys:
 
     The subproblem corresponding to the node as a MathOptFormat object.
 
-There are also two optional keys.
+There are also two optional keys:
 
 - `validation_scenarios::List{Object}`
 
@@ -676,7 +671,7 @@ test scenarios drawn from the same distribution as the validation data.
 - Q: JSON seems too verbose.
 
   A: JSON files compress well. For example, for problems in the MIPLIB 2017
-  benchmark set, compressed MathOptFormat files are only 37% larger than their
+  benchmark set, compressed MathOptFormat files are only 19% larger than their
   compressed MPS equivalents [2].
 
 - Q: I want the uncertainty to be an objective/constraint coefficient.

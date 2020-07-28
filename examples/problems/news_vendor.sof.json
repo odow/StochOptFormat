@@ -5,7 +5,6 @@
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
   "version": {"major": 0, "minor": 2},
   "root": {
-    "name": "root",
     "state_variables": {
       "x": {"initial_value": 0.0}
     },
