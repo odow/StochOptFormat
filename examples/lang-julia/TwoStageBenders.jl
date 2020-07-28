@@ -37,7 +37,7 @@ struct TwoStageProblem
     first::JuMP.Model
     second::JuMP.Model
     state_variables::Set{String}
-    test_scenarios::Vector{Dict{String, Any}}
+    validation_scenarios::Vector{Dict{String, Any}}
 end
 
 """
@@ -60,11 +60,14 @@ function TwoStageProblem(filename::String; validate::Bool = true)
     first, second = _get_stage_names(data)
     problem = TwoStageProblem(
         sha_256,
-        _mathoptformat_to_jump(data["nodes"][first]),
-        _mathoptformat_to_jump(data["nodes"][second]),
-        Set(keys(data["nodes"][first]["state_variables"])),
-        data["test_scenarios"],
+        _mathoptformat_to_jump(data, first),
+        _mathoptformat_to_jump(data, second),
+        Set{String}(),
+        get(data, "validation_scenarios", Dict{String, Any}[]),
     )
+    for k in keys(problem.first.ext[:state_variables])
+        push!(problem.state_variables, k)
+    end
     _initialize_first_stage(data, first, problem.first)
     return problem
 end
@@ -75,9 +78,8 @@ function _validate(data::Dict; schema_filename::String)
 end
 
 function _initialize_first_stage(data::Dict, first::String, sp::JuMP.Model)
-    states = data["nodes"][first]["state_variables"]
     for (name, init) in data["root"]["state_variables"]
-        x = JuMP.variable_by_name(sp, states[name]["in"])
+        x = JuMP.variable_by_name(sp, sp.ext[:state_variables][name]["in"])
         JuMP.fix(x, init["initial_value"]; force = true)
     end
     JuMP.@variable(sp, -1e6 <= theta <= 1e6)
@@ -103,16 +105,18 @@ function _get_stage_names(data::Dict)
     end
 end
 
-function _mathoptformat_to_jump(node)
+function _mathoptformat_to_jump(data, name)
+    node = data["nodes"][name]
+    sp = data["subproblems"][node["subproblem"]]
     model = JuMP.MOI.FileFormats.Model(format = JuMP.MOI.FileFormats.FORMAT_MOF)
     io = IOBuffer()
-    write(io, JSON.json(node["subproblem"]))
+    write(io, JSON.json(sp["subproblem"]))
     seekstart(io)
     JuMP.MOI.read!(io, model)
     subproblem = JuMP.Model(Clp.Optimizer)
     JuMP.MOI.copy_to(subproblem, model)
     JuMP.set_silent(subproblem)
-    subproblem.ext[:state_variables] = node["state_variables"]
+    subproblem.ext[:state_variables] = sp["state_variables"]
     subproblem.ext[:realizations] = node["realizations"]
     _convert_realizations(subproblem.ext[:realizations])
     return subproblem
@@ -247,16 +251,16 @@ end
 """
     evaluate(
         problem::TwoStageProblem;
-        scenarios = problem.test_scenarios,
+        scenarios = problem.validation_scenarios,
     )
 
 Evaluate the policy after training `problem` on `scenarios`. By default, these
-are the `test_scenarios` contained in the StochOptFormat file, but you can pass
-a different set if necessary.
+are the `validation_scenarios` contained in the StochOptFormat file, but you can
+pass a different set if necessary.
 """
 function evaluate(
     problem::TwoStageProblem;
-    scenarios = problem.test_scenarios,
+    scenarios = problem.validation_scenarios,
     filename::Union{Nothing, String} = nothing
 )
     solutions = Vector{Dict{String, Any}}[]

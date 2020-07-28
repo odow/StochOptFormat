@@ -12,6 +12,23 @@
   },
   "nodes": {
     "first_stage": {
+      "subproblem": "first_stage_subproblem",
+      "realizations": []
+    },
+    "second_stage": {
+      "subproblem": "second_stage_subproblem",
+      "realizations": [
+        {"probability": 0.4, "support": {"d": 10.0}},
+        {"probability": 0.6, "support": {"d": 14.0}}
+      ]
+    }
+  },
+  "edges": [
+    {"from": "root", "to": "first_stage", "probability": 1.0},
+    {"from": "first_stage", "to": "second_stage", "probability": 1.0}
+  ],
+  "subproblems": {
+    "first_stage_subproblem": {
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
@@ -31,10 +48,9 @@
           "function": {"head": "SingleVariable", "variable": "x_out"},
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
-      },
-      "realizations": []
+      }
     },
-    "second_stage": {
+    "second_stage_subproblem": {
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
@@ -76,18 +92,10 @@
           "function": {"head": "SingleVariable", "variable": "u"},
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
-      },
-      "realizations": [
-        {"probability": 0.4, "support": {"d": 10.0}},
-        {"probability": 0.6, "support": {"d": 14.0}}
-      ]
+      }
     }
   },
-  "edges": [
-    {"from": "root", "to": "first_stage", "probability": 1.0},
-    {"from": "first_stage", "to": "second_stage", "probability": 1.0}
-  ],
-  "test_scenarios": [
+  "validation_scenarios": [
     {
       "probability": 0.4,
       "scenario": [

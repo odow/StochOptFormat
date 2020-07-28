@@ -88,7 +88,7 @@ class TwoStageProblem:
 
     def evaluate(self, scenarios = None, filename = None):
         if scenarios is None:
-            scenarios = self.data['test_scenarios']
+            scenarios = self.data['validation_scenarios']
         solutions = []
         for s_dict in scenarios:
             scenario = s_dict['scenario']
@@ -139,7 +139,8 @@ class TwoStageProblem:
 
     def _mathoptformat_to_pulp(self, name):
         node = self.data['nodes'][name]
-        sp = node['subproblem']
+        subproblem = self.data['subproblems'][node['subproblem']]
+        sp = subproblem['subproblem']
         # Create the problem
         sense = LpMaximize if sp['objective']['sense'] == 'max' else LpMinimize
         prob = LpProblem(name, sense)
@@ -194,7 +195,7 @@ class TwoStageProblem:
         return {
             'subproblem': prob,
             'vars': vars,
-            'state_variables': node['state_variables'],
+            'state_variables': subproblem['state_variables'],
             'realizations': node['realizations'],
         }
 

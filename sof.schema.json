@@ -3,7 +3,7 @@
     "$id": "https://odow.github.io/StochOptFormat/sof.schema.json",
     "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
-    "required": ["version", "root", "nodes", "edges", "test_scenarios"],
+    "required": ["version", "root", "nodes", "edges", "subproblems"],
     "properties": {
         "version": {
             "description": "The version of StochOptFormat that this schema validates against.",
@@ -63,7 +63,33 @@
             "description": "An object containing the nodes in the policy graph.",
             "type": "object",
             "additionalProperties": {
-                "$ref": "#/definitions/node"
+                "type": "object",
+                "required": ["realizations", "subproblem"],
+                "properties": {
+                    "realizations": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["probability", "support"],
+                            "properties": {
+                                "probability": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                },
+                                "support": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "subproblem": {
+                        "type": "string"
+                    }
+                }
             }
         },
         "edges": {
@@ -73,7 +99,14 @@
                 "$ref": "#/definitions/edge"
             }
         },
-        "test_scenarios": {
+        "subproblems": {
+            "description": "An object of subproblems. Multiple nodes can point to the same subproblem.",
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/subproblem"
+            }
+        },
+        "validation_scenarios": {
             "description": "Out-of-sample scenarios used to evaluate the policy.",
             "type": "array",
             "items": {
@@ -107,12 +140,10 @@
                 }
             }
         },
-        "node": {
-            "description": "A node in the policy graph.",
+        "subproblem": {
+            "description": "A subproblem in the policy graph.",
             "type": "object",
-            "required": [
-                "state_variables", "random_variables", "subproblem", "realizations"
-            ],
+            "required": ["state_variables", "random_variables", "subproblem"],
             "properties": {
                 "state_variables": {
                     "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the subproblem.",
@@ -140,26 +171,6 @@
                 "subproblem": {
                     "description": "The subproblem in MathOptFormat.",
                     "$ref": "https://jump.dev/MathOptFormat/mof.0.4.schema.json"
-                },
-                "realizations": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["probability", "support"],
-                        "properties": {
-                            "probability": {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                            },
-                            "support": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "type": "number"
-                                }
-                            }
-                        }
-                    }
                 }
             }
         },
