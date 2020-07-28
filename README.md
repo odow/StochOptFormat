@@ -7,14 +7,14 @@ optimization problems called _StochOptFormat_, with the file extension
 For convenience, we sometimes abbreviate StochOptFormat to _SOF_.
 
 StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
-available at [`https://odow.github.io/StochOptFormat/sof.schema.json`](https://odow.github.io/StochOptFormat/sof.schema.json).
+available at [`https://odow.github.io/StochOptFormat/sof-latest.schema.json`](https://odow.github.io/StochOptFormat/sof-latest.schema.json).
+Other versions are also available in the [versions directory].
 
-The [examples directory] of the
-project's [Github page](https://github.com/odow/StochOptFormat) contains a
-pedagogical implementation of Benders decomposition for two stage stochastic
-programs in Julia and Python, along with a JSON file for the news-vendor problem
-discussed in this documentation. The code is intended to be a guide, rather than
-a state-of-the-art implementation.
+The [examples directory] of the project's [Github page](https://github.com/odow/StochOptFormat)
+contains a pedagogical implementation of Benders decomposition for two stage
+stochastic programs in Julia and Python, along with a JSON file for the
+news-vendor problem discussed in this documentation. The code is intended to be
+a guide, rather than a state-of-the-art implementation.
 
 **Authors**
 
@@ -258,7 +258,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
   "name": "newsvendor",
   "date": "2020-07-10",
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
-  "version": {"major": 0, "minor": 1},
+  "version": {"major": 0, "minor": 2},
   "root": {
     "name": "root",
     "state_variables": {
@@ -734,6 +734,7 @@ test scenarios drawn from the same distribution as the validation data.
   [doi: 10.1002/9780470400531.eorms0411](https://doi.org/10.1002/9780470400531.eorms0411)
 
 [examples directory]: https://github.com/odow/StochOptFormat/tree/master/examples
+[versions directory]: https://github.com/odow/StochOptFormat/tree/master/versions
 [JuMP]: https://jump.dev
 [PuLP]: https://coin-or.github.io/pulp/
 [SDDP.jl]: https://odow.github.io/SDDP.jl/latest

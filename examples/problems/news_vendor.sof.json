@@ -3,7 +3,7 @@
   "name": "newsvendor",
   "date": "2020-07-10",
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
-  "version": {"major": 0, "minor": 1},
+  "version": {"major": 0, "minor": 2},
   "root": {
     "name": "root",
     "state_variables": {

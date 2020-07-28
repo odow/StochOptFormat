@@ -29,7 +29,7 @@ class TwoStageProblem:
     _dir = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
-    schema_filename = os.path.join(_dir, 'sof.schema.json')
+    schema_filename = os.path.join(_dir, 'sof-latest.schema.json')
     result_schema_filename = os.path.join(_dir, 'sof_result.schema.json')
 
     def __init__(self, filename, validate = True):

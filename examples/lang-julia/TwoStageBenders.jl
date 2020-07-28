@@ -27,7 +27,7 @@ import Printf
 import SHA
 
 const SCHEMA_FILENAME =
-    joinpath(dirname(dirname(@__DIR__)), "sof.schema.json")
+    joinpath(dirname(dirname(@__DIR__)), "sof-latest.schema.json")
 
 const RESULT_SCHEMA_FILENAME =
     joinpath(dirname(dirname(@__DIR__)), "sof_result.schema.json")
@@ -56,7 +56,7 @@ function TwoStageProblem(filename::String; validate::Bool = true)
         _validate(data; schema_filename = SCHEMA_FILENAME)
     end
     @assert(data["version"]["major"] == 0)
-    @assert(data["version"]["minor"] == 1)
+    @assert(data["version"]["minor"] == 2)
     first, second = _get_stage_names(data)
     problem = TwoStageProblem(
         sha_256,
