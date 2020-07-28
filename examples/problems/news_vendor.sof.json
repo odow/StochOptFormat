@@ -3,15 +3,34 @@
   "name": "newsvendor",
   "date": "2020-07-10",
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
-  "version": {"major": 0, "minor": 1},
+  "version": {"major": 0, "minor": 2},
   "root": {
-    "name": "root",
     "state_variables": {
       "x": {"initial_value": 0.0}
-    }
+    },
+    "successors": [
+      {"node": "first_stage", "probability": 1.0}
+    ]
   },
   "nodes": {
     "first_stage": {
+      "subproblem": "first_stage_subproblem",
+      "realizations": [],
+      "successors": [
+        {"node": "second_stage", "probability": 1.0}
+      ]
+    },
+    "second_stage": {
+      "subproblem": "second_stage_subproblem",
+      "realizations": [
+        {"probability": 0.4, "support": {"d": 10.0}},
+        {"probability": 0.6, "support": {"d": 14.0}}
+      ],
+      "successors": []
+    }
+  },
+  "subproblems": {
+    "first_stage_subproblem": {
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
@@ -31,10 +50,9 @@
           "function": {"head": "SingleVariable", "variable": "x_out"},
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
-      },
-      "realizations": []
+      }
     },
-    "second_stage": {
+    "second_stage_subproblem": {
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
@@ -76,18 +94,10 @@
           "function": {"head": "SingleVariable", "variable": "u"},
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
-      },
-      "realizations": [
-        {"probability": 0.4, "support": {"d": 10.0}},
-        {"probability": 0.6, "support": {"d": 14.0}}
-      ]
+      }
     }
   },
-  "edges": [
-    {"from": "root", "to": "first_stage", "probability": 1.0},
-    {"from": "first_stage", "to": "second_stage", "probability": 1.0}
-  ],
-  "test_scenarios": [
+  "validation_scenarios": [
     {
       "probability": 0.4,
       "scenario": [

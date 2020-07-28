@@ -29,7 +29,7 @@ class TwoStageProblem:
     _dir = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
-    schema_filename = os.path.join(_dir, 'sof.schema.json')
+    schema_filename = os.path.join(_dir, 'sof-latest.schema.json')
     result_schema_filename = os.path.join(_dir, 'sof_result.schema.json')
 
     def __init__(self, filename, validate = True):
@@ -88,7 +88,7 @@ class TwoStageProblem:
 
     def evaluate(self, scenarios = None, filename = None):
         if scenarios is None:
-            scenarios = self.data['test_scenarios']
+            scenarios = self.data['validation_scenarios']
         solutions = []
         for s_dict in scenarios:
             scenario = s_dict['scenario']
@@ -123,23 +123,21 @@ class TwoStageProblem:
     def _get_stage_names(self):
         data = self.data
         assert(len(data['nodes']) == 2)
-        assert(len(data['edges']) == 2)
-        edge_1, edge_2 = data['edges']
+        assert(len(data['root']['successors']) == 1)
+        edge_1 = data['root']['successors'][0]
         assert(edge_1['probability'] == 1.0)
+        first_node = edge_1['node']
+        assert(len(data['nodes'][first_node]['successors']) == 1)
+        edge_2 = data['nodes'][first_node]['successors'][0]
         assert(edge_2['probability'] == 1.0)
-        first, second = '', ''
-        if edge_1['from'] == data['root']['name']:
-            assert(edge_2['from'] != data['root']['name'])
-            assert(edge_1['to'] == edge_2['from'])
-            return edge_1['to'], edge_2['to']
-        else:
-            assert(edge_2['from'] == data['root']['name'])
-            assert(edge_2['to'] == edge_1['from'])
-            return edge_2['to'], edge_1['to']
+        second_node = edge_2['node']
+        assert(len(data['nodes'][second_node]['successors']) == 0)
+        return first_node, second_node
 
     def _mathoptformat_to_pulp(self, name):
         node = self.data['nodes'][name]
-        sp = node['subproblem']
+        subproblem = self.data['subproblems'][node['subproblem']]
+        sp = subproblem['subproblem']
         # Create the problem
         sense = LpMaximize if sp['objective']['sense'] == 'max' else LpMinimize
         prob = LpProblem(name, sense)
@@ -194,7 +192,7 @@ class TwoStageProblem:
         return {
             'subproblem': prob,
             'vars': vars,
-            'state_variables': node['state_variables'],
+            'state_variables': subproblem['state_variables'],
             'realizations': node['realizations'],
         }
 

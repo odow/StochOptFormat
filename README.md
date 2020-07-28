@@ -7,14 +7,14 @@ optimization problems called _StochOptFormat_, with the file extension
 For convenience, we sometimes abbreviate StochOptFormat to _SOF_.
 
 StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
-available at [`https://odow.github.io/StochOptFormat/sof.schema.json`](https://odow.github.io/StochOptFormat/sof.schema.json).
+available at [`https://odow.github.io/StochOptFormat/sof-latest.schema.json`](https://odow.github.io/StochOptFormat/sof-latest.schema.json).
+Other versions are also available in the [versions directory].
 
-The [examples directory] of the
-project's [Github page](https://github.com/odow/StochOptFormat) contains a
-pedagogical implementation of Benders decomposition for two stage stochastic
-programs in Julia and Python, along with a JSON file for the news-vendor problem
-discussed in this documentation. The code is intended to be a guide, rather than
-a state-of-the-art implementation.
+The [examples directory] of the project's [Github page](https://github.com/odow/StochOptFormat)
+contains a pedagogical implementation of Benders decomposition for two stage
+stochastic programs in Julia and Python, along with a JSON file for the
+news-vendor problem discussed in this documentation. The code is intended to be
+a guide, rather than a state-of-the-art implementation.
 
 **Authors**
 
@@ -77,9 +77,9 @@ multistage stochastic programs. StochOptFormat is a serialization of this data
 structure into the JSON file format, hence allowing easy access from almost all
 major computer languages.
 
-StochOptFormat is inspired by our work on [JuMP] and [SDDP.jl]. However, it is 
-not exclusive to Julia or stochastic dual dynamic programming. For example, this 
-format makes it possible to read multistage stochastic programming problems into 
+StochOptFormat is inspired by our work on [JuMP] and [SDDP.jl]. However, it is
+not exclusive to Julia or stochastic dual dynamic programming. For example, this
+format makes it possible to read multistage stochastic programming problems into
 Python and solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
 We have not implemented the code yet because this is not our area of expertise.
 
@@ -100,22 +100,22 @@ In creating StochOptFormat, we wanted to achieve the following:
   (Spoiler alert: it is not the first stage decision. See
   [Problems, policies, and algorithms](#problems-policies-and-algorithms).)
 
-Equally important as the things that we set out to do, is the things that we did
-_not_ set out to do.
+Equally important as the things that we set out to do, are the things that we
+did _not_ set out to do.
 
   - We did not try to incorporate chance constraints.
   - We did not try to incorporate continuous random variables.
   - We did not try to incorporate decision-hazard nodes.
-  
-Finally, StochOptFormat is not an algebraic modeling language for stochastic 
+
+Finally, StochOptFormat is not an algebraic modeling language for stochastic
 programming. Instead, it is an instance format [5].
 
-You should not write StochOptFormat files by hand. Nor should you need to 
+You should not write StochOptFormat files by hand. Nor should you need to
 consider the exact layout of the file when formulating your model. The analog is
-the MPS file format. No one writes MPS files by hand, and most people are 
-probably unaware of the exact structure and syntax of an MPS file. Instead, we 
-use high-level algebraic modeling languages like [JuMP] to build models, and we 
-expect our solvers to handle the difficulty of reading and writing the MPS 
+the MPS file format. No one writes MPS files by hand, and most people are
+probably unaware of the exact structure and syntax of an MPS file. Instead, we
+use high-level algebraic modeling languages like [JuMP] to build models, and we
+expect our solvers to handle the difficulty of reading and writing the MPS
 files.
 
 ## Example
@@ -258,15 +258,34 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
   "name": "newsvendor",
   "date": "2020-07-10",
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
-  "version": {"major": 0, "minor": 1},
+  "version": {"major": 0, "minor": 2},
   "root": {
-    "name": "root",
     "state_variables": {
       "x": {"initial_value": 0.0}
-    }
+    },
+    "successors": [
+      {"node": "first_stage", "probability": 1.0}
+    ]
   },
   "nodes": {
     "first_stage": {
+      "subproblem": "first_stage_subproblem",
+      "realizations": [],
+      "successors": [
+        {"node": "second_stage", "probability": 1.0}
+      ]
+    },
+    "second_stage": {
+      "subproblem": "second_stage_subproblem",
+      "realizations": [
+        {"probability": 0.4, "support": {"d": 10.0}},
+        {"probability": 0.6, "support": {"d": 14.0}}
+      ],
+      "successors": []
+    }
+  },
+  "subproblems": {
+    "first_stage_subproblem": {
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
@@ -286,10 +305,9 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
           "function": {"head": "SingleVariable", "variable": "x_out"},
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
-      },
-      "realizations": []
+      }
     },
-    "second_stage": {
+    "second_stage_subproblem": {
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
@@ -331,18 +349,10 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
           "function": {"head": "SingleVariable", "variable": "u"},
           "set": {"head": "GreaterThan", "lower": 0.0}
         }]
-      },
-      "realizations": [
-        {"probability": 0.4, "support": {"d": 10.0}},
-        {"probability": 0.6, "support": {"d": 14.0}}
-      ]
+      }
     }
   },
-  "edges": [
-    {"from": "root", "to": "first_stage", "probability": 1.0},
-    {"from": "first_stage", "to": "second_stage", "probability": 1.0}
-  ],
-  "test_scenarios": [
+  "validation_scenarios": [
     {
       "probability": 0.4,
       "scenario": [
@@ -393,23 +403,19 @@ Note: In the following, `name::String` means that the key of an object is `name`
 and the value should be of type `String`. `::List{Object}` means that the type
 is a `List`, and elements of the list are `Object`s.
 
-After the optional metadata keys, there are five required keys:
+After the optional metadata keys, there are four required keys:
 
 - `version::Object`
 
-  An object describing the minimum version of MathOptFormat needed to parse
+  An object describing the minimum version of StochOptFormat needed to parse
   the file. This is included to safeguard against later revisions. It contains
-  two keys: `major` and `minor`. These keys should be interpreted using
+  two required keys: `major` and `minor`. These keys should be interpreted using
   [SemVer](https://semver.org).
 
 - `root::Object`
 
-  An object describing the root node of the policy graph. It has two required
-  keys:
-
-  - `name::String`
-
-    A unique string name for the root node to distinguish it from other nodes.
+  An object describing the root node of the policy graph. It has the following
+  required keys:
 
   - `state_variables::Object`
 
@@ -421,11 +427,51 @@ After the optional metadata keys, there are five required keys:
 
       The value of the state variable at the root node.
 
+  - `successors::List{Object}`
+
+    The list of edges exiting the root node. Each object has two keys,
+    `node::String` and `probability::Number` which give the probability of
+    transitioning from the root node to `node`.
+
 - `nodes::Object`
 
   An object mapping the name of each node of the policy graph (excluding the
-  root node) to an object describing the node. Each object has four required
-  keys:
+  root node) to an object describing the node. Each object has the following
+  required keys:
+
+  - `subproblem::String`
+
+    The name of the subproblem to use from the `subproblems` object. Multiple
+    nodes can refer to the same subproblem to reduce redundancy if they share
+    the same structural form.
+
+  - `realizations::List{Object}`
+
+    A list of objects describing the finite discrete realizations of the
+    stagewise-independent random variable in each node. Each object has two
+    required keys:
+
+    - `probability::Number`
+
+      The nominal probability of each realization.
+
+    - `support::Object`
+
+      An object describing the support corresponding to the realization. The
+      keys of the object are the random variables declared in
+      `random_variables`, and the values are the value of the random variable in
+      that realization.
+
+  - `successors::List{Object}`
+
+    The list of edges exiting the node. Each object has two keys, `node::String`
+    and `probability::Number` which give the probability of transitioning from
+    the current node to `node`.
+
+- `subproblems::Object`
+
+  An object that stores the collection of subproblems in the policy graph. Each
+  object has three required keys:
 
   - `state_variables::Object`
 
@@ -452,43 +498,11 @@ After the optional metadata keys, there are five required keys:
 
     The subproblem corresponding to the node as a MathOptFormat object.
 
-  - `realizations::List{Object}`
+There are also two optional keys:
 
-    A list of objects describing the finite discrete realizations of the
-    stagewise-independent random variable in each node. Each object has two
-    required keys:
+- `validation_scenarios::List{Object}`
 
-    - `probability::Number`
-
-      The nominal probability of each realization.
-
-    - `support::Object`
-
-      An object describing the support corresponding to the realization. The
-      keys of the object are the random variables declared in
-      `random_variables`, and the values are the value of the random variable in
-      that realization.
-
-- `edges::List{Object}`
-
-  A list of objects with one element for each edge in the policy graph. Each
-  object has three required keys:
-
-  - `from::String`
-
-    The name of the node that the edge exits.
-
-  - `to::String`
-
-    The name of the node that the edge enters. This cannot be the root node.
-
-  - `probability::Number`
-
-    The nominal probability of transitioning from node `from` to node `to`.
-
-- `test_scenarios::List{Object}`
-
-  Scenarios to be used to evaluate a policy. `test_scenarios` is a list,
+  Scenarios to be used to evaluate a policy. `validation_scenarios` is a list,
   containing one element for each scenario in the test set. Each element is an
   object with two fields: `probability::Number` and `scenario::List{Object}`.
   The `probability` gives the nominal probability associated with the scenario.
@@ -500,16 +514,16 @@ After the optional metadata keys, there are five required keys:
   policy is a larger topic, so we expand on it in the section
   [Problems, policies, and algorithms](#problems-policies-and-algorithms).
 
-There is also an optional key, `historical_scenarios::List{Object}`. The
-value of the key is identical to `test_scenarios`, except that these scenarios
-should be any historical data that was used when first constructing the problem.
-This allows modellers to experiment with different representations of the
-underlying stochastic process.
+- `historical_scenarios::List{Object}`.
 
-In our example, the second stage realizations have probilities of 0.6 and 0.4.
-However, there are two `historical_scenarios`, each with probability 0.5, so one
-may infer that another reasonable model would be to give the node realizations
-probabilities of 0.5 and 0.5.
+  The value of this key is identical to `validation_scenarios`, except that
+  these scenarios should be any historical data that was used when first
+  constructing the problem. This allows modellers to experiment with different representations of the underlying stochastic process.
+
+  In our example, the second stage realizations have probilities of 0.6 and 0.4.
+  However, there are two `historical_scenarios`, each with probability 0.5, so
+  one may infer that another reasonable model would be to give the node
+  realizations probabilities of 0.5 and 0.5.
 
 Providing both `realizations` and `historical_scenarios` allows us to to do two
 things:
@@ -569,7 +583,7 @@ of scenarios over which it should be evaluated is so large as to be intractable.
 
 To overcome these two issues, we evaluate the policy by means of an
 _out-of-sample_ simulation on a finite discrete set of scenarios provided in the
-`test_scenarios` key of a StochOptFormat file.
+`validation_scenarios` key of a StochOptFormat file.
 
 Solution algorithms should evaluate their policy on each of these scenarios and
 report the following for each node in each scenario:
@@ -589,12 +603,11 @@ problem, but it does not solve the user's risk perference problem. However, with
 the above mentioned report, it is possible to evaluate multiple metrics of the
 resulting policy, such as expected objective values, and various quantiles.
 
-We envisage that any benchmark library would provide algorithm rankings based on
-a number of difference risk measures (e.g., expectation, worst-case, variance),
-so that users can select the one that most closely resembles theirs.
+Be aware not to over-fit the policy to the validation data!
 
-We emphasize that the _out-of-sample_ analysis is deeply tied with the actual
-application of stochastic optimization in real life.
+In the future, we hope to start a competition for solving multistage programs.
+This competition would evaluate the performance of policies on a withheld set of
+test scenarios drawn from the same distribution as the validation data.
 
 ## FAQ
 
@@ -605,9 +618,9 @@ application of stochastic optimization in real life.
   our format requires T subproblems, a list of the state variables, and a
   sequence of edges. Of those things, only the list of edges would be
   superfluous in a purely T-stage format. So, for the sake of a list of objects
-  like `{"from": "1", "to": "2", "probability": 1}`, we get a format that
-  trivially extends to infinite horizon problems and problems with a stochastic
-  process that is not stagewise independent.
+  like `{"node": "1", "probability": 1}`, we get a format that trivially extends
+  to infinite horizon problems and problems with a stochastic process that is
+  not stagewise independent.
 
 - Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
 
@@ -617,7 +630,7 @@ application of stochastic optimization in real life.
 
 - Q: You don't expect me to write these by hand do you?
 
-  A: No. We expect high-level libraries like [SDDP.jl] to do the reading and 
+  A: No. We expect high-level libraries like [SDDP.jl] to do the reading and
   writing for you.
 
 - Q: What happened to SMPS?
@@ -658,7 +671,7 @@ application of stochastic optimization in real life.
 - Q: JSON seems too verbose.
 
   A: JSON files compress well. For example, for problems in the MIPLIB 2017
-  benchmark set, compressed MathOptFormat files are only 37% larger than their
+  benchmark set, compressed MathOptFormat files are only 19% larger than their
   compressed MPS equivalents [2].
 
 - Q: I want the uncertainty to be an objective/constraint coefficient.
@@ -688,7 +701,7 @@ application of stochastic optimization in real life.
 - Pedagogical Julia code for solving two-stage stochastic linear programs using
   Benders decomposition and [JuMP] is available in the [examples directory].
 
-- Experimental support for reading and writing StochOptFormat files is available 
+- Experimental support for reading and writing StochOptFormat files is available
   in the [SDDP.jl] libary.
 
 ## References
@@ -698,24 +711,25 @@ application of stochastic optimization in real life.
   [doi: 10.1002/net.21932](https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932)
   [[preprint]](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)
 
-[2] Legat, B., Dowson, O., Garcia, J.D. and Lubin, M. (2020). MathOptInterface: 
+[2] Legat, B., Dowson, O., Garcia, J.D. and Lubin, M. (2020). MathOptInterface:
   a data structure for mathematical optimization problems.
   [[preprint]](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
   [[repository]](https://github.com/jump-dev/MathOptFormat)
 
-[3] Fourer, R., Gassmann, H.I., Ma, J. and Martin, R.K. (2009). An XML-based schema for 
+[3] Fourer, R., Gassmann, H.I., Ma, J. and Martin, R.K. (2009). An XML-based schema for
   stochastic programs. _Ann Oper Res_, 166, 313-337.
   [doi: 10.1007/s10479-008-0419-x](https://link.springer.com/content/pdf/10.1007/s10479-008-0419-x.pdf)
 
 [4] Gassmann, H.I. and Kristjánsson, B. (2008). The SMPS format explained. _IMA
   Journal of Management Mathematics_, 19(4), 347-377. [doi: 10.1093/imaman/dpm007](http://maximal.net/resources/GassmannKristjansson_dpm007v1.pdf)
 
-[5] Gassmann, H.I., Ma, J. and Martin, R.K. (2011). Instance Formats for Mathematical 
-  Optimization Models. In _Wiley Encyclopedia of Operations Research and Management 
-  Science_ (eds J.J. Cochran, L.A. Cox, P. Keskinocak, J.P. Kharoufeh and J.C. Smith). 
+[5] Gassmann, H.I., Ma, J. and Martin, R.K. (2011). Instance Formats for Mathematical
+  Optimization Models. In _Wiley Encyclopedia of Operations Research and Management
+  Science_ (eds J.J. Cochran, L.A. Cox, P. Keskinocak, J.P. Kharoufeh and J.C. Smith).
   [doi: 10.1002/9780470400531.eorms0411](https://doi.org/10.1002/9780470400531.eorms0411)
 
 [examples directory]: https://github.com/odow/StochOptFormat/tree/master/examples
+[versions directory]: https://github.com/odow/StochOptFormat/tree/master/versions
 [JuMP]: https://jump.dev
 [PuLP]: https://coin-or.github.io/pulp/
 [SDDP.jl]: https://odow.github.io/SDDP.jl/latest

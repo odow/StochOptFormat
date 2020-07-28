@@ -27,7 +27,7 @@ import Printf
 import SHA
 
 const SCHEMA_FILENAME =
-    joinpath(dirname(dirname(@__DIR__)), "sof.schema.json")
+    joinpath(dirname(dirname(@__DIR__)), "sof-latest.schema.json")
 
 const RESULT_SCHEMA_FILENAME =
     joinpath(dirname(dirname(@__DIR__)), "sof_result.schema.json")
@@ -37,7 +37,7 @@ struct TwoStageProblem
     first::JuMP.Model
     second::JuMP.Model
     state_variables::Set{String}
-    test_scenarios::Vector{Dict{String, Any}}
+    validation_scenarios::Vector{Dict{String, Any}}
 end
 
 """
@@ -56,15 +56,18 @@ function TwoStageProblem(filename::String; validate::Bool = true)
         _validate(data; schema_filename = SCHEMA_FILENAME)
     end
     @assert(data["version"]["major"] == 0)
-    @assert(data["version"]["minor"] == 1)
+    @assert(data["version"]["minor"] == 2)
     first, second = _get_stage_names(data)
     problem = TwoStageProblem(
         sha_256,
-        _mathoptformat_to_jump(data["nodes"][first]),
-        _mathoptformat_to_jump(data["nodes"][second]),
-        Set(keys(data["nodes"][first]["state_variables"])),
-        data["test_scenarios"],
+        _mathoptformat_to_jump(data, first),
+        _mathoptformat_to_jump(data, second),
+        Set{String}(),
+        get(data, "validation_scenarios", Dict{String, Any}[]),
     )
+    for k in keys(problem.first.ext[:state_variables])
+        push!(problem.state_variables, k)
+    end
     _initialize_first_stage(data, first, problem.first)
     return problem
 end
@@ -75,9 +78,8 @@ function _validate(data::Dict; schema_filename::String)
 end
 
 function _initialize_first_stage(data::Dict, first::String, sp::JuMP.Model)
-    states = data["nodes"][first]["state_variables"]
     for (name, init) in data["root"]["state_variables"]
-        x = JuMP.variable_by_name(sp, states[name]["in"])
+        x = JuMP.variable_by_name(sp, sp.ext[:state_variables][name]["in"])
         JuMP.fix(x, init["initial_value"]; force = true)
     end
     JuMP.@variable(sp, -1e6 <= theta <= 1e6)
@@ -87,32 +89,30 @@ end
 
 function _get_stage_names(data::Dict)
     @assert length(data["nodes"]) == 2
-    @assert length(data["edges"]) == 2
-    edge_1, edge_2 = data["edges"]
+    @assert length(data["root"]["successors"]) == 1
+    edge_1 = data["root"]["successors"][1]
     @assert edge_1["probability"] == 1.0
+    first_node = edge_1["node"]
+    @assert length(data["nodes"][first_node]["successors"]) == 1
+    edge_2 = data["nodes"][first_node]["successors"][1]
     @assert edge_2["probability"] == 1.0
-    first, second = "", ""
-    if edge_1["from"] == data["root"]["name"]
-        @assert edge_2["from"] != data["root"]["name"]
-        @assert edge_1["to"] == edge_2["from"]
-        return edge_1["to"], edge_2["to"]
-    else
-        @assert edge_2["from"] == data["root"]["name"]
-        @assert edge_2["to"] == edge_1["from"]
-        return edge_2["to"], edge_1["to"]
-    end
+    second_node = edge_2["node"]
+    @assert length(data["nodes"][second_node]["successors"]) == 0
+    return first_node, second_node
 end
 
-function _mathoptformat_to_jump(node)
+function _mathoptformat_to_jump(data, name)
+    node = data["nodes"][name]
+    sp = data["subproblems"][node["subproblem"]]
     model = JuMP.MOI.FileFormats.Model(format = JuMP.MOI.FileFormats.FORMAT_MOF)
     io = IOBuffer()
-    write(io, JSON.json(node["subproblem"]))
+    write(io, JSON.json(sp["subproblem"]))
     seekstart(io)
     JuMP.MOI.read!(io, model)
     subproblem = JuMP.Model(Clp.Optimizer)
     JuMP.MOI.copy_to(subproblem, model)
     JuMP.set_silent(subproblem)
-    subproblem.ext[:state_variables] = node["state_variables"]
+    subproblem.ext[:state_variables] = sp["state_variables"]
     subproblem.ext[:realizations] = node["realizations"]
     _convert_realizations(subproblem.ext[:realizations])
     return subproblem
@@ -247,16 +247,16 @@ end
 """
     evaluate(
         problem::TwoStageProblem;
-        scenarios = problem.test_scenarios,
+        scenarios = problem.validation_scenarios,
     )
 
 Evaluate the policy after training `problem` on `scenarios`. By default, these
-are the `test_scenarios` contained in the StochOptFormat file, but you can pass
-a different set if necessary.
+are the `validation_scenarios` contained in the StochOptFormat file, but you can
+pass a different set if necessary.
 """
 function evaluate(
     problem::TwoStageProblem;
-    scenarios = problem.test_scenarios,
+    scenarios = problem.validation_scenarios,
     filename::Union{Nothing, String} = nothing
 )
     solutions = Vector{Dict{String, Any}}[]
