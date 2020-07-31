@@ -54,20 +54,11 @@
                     }
                 },
                 "successors": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["node", "probability"],
-                        "properties": {
-                            "node": {
-                                "type": "string"
-                            },
-                            "probability": {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                            }
-                        }
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
                     }
                 }
             }
@@ -103,20 +94,11 @@
                         }
                     },
                     "successors": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "required": ["node", "probability"],
-                            "properties": {
-                                "node": {
-                                    "type": "string"
-                                },
-                                "probability": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                }
-                            }
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
                         }
                     }
                 }

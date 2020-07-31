@@ -124,13 +124,12 @@ class TwoStageProblem:
         data = self.data
         assert(len(data['nodes']) == 2)
         assert(len(data['root']['successors']) == 1)
-        edge_1 = data['root']['successors'][0]
-        assert(edge_1['probability'] == 1.0)
-        first_node = edge_1['node']
-        assert(len(data['nodes'][first_node]['successors']) == 1)
-        edge_2 = data['nodes'][first_node]['successors'][0]
-        assert(edge_2['probability'] == 1.0)
-        second_node = edge_2['node']
+        (first_node, probability) = next(iter(data['root']['successors'].items()))
+        assert(probability == 1.0)
+        successors = data['nodes'][first_node]['successors']
+        assert(len(successors) == 1)
+        (second_node, probability) = next(iter(successors.items()))
+        assert(probability == 1.0)
         assert(len(data['nodes'][second_node]['successors']) == 0)
         return first_node, second_node
 
