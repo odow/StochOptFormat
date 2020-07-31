@@ -90,13 +90,12 @@ end
 function _get_stage_names(data::Dict)
     @assert length(data["nodes"]) == 2
     @assert length(data["root"]["successors"]) == 1
-    edge_1 = data["root"]["successors"][1]
-    @assert edge_1["probability"] == 1.0
-    first_node = edge_1["node"]
-    @assert length(data["nodes"][first_node]["successors"]) == 1
-    edge_2 = data["nodes"][first_node]["successors"][1]
-    @assert edge_2["probability"] == 1.0
-    second_node = edge_2["node"]
+    first_node, probability = first(data["root"]["successors"])
+    @assert probability == 1.0
+    successors = data["nodes"][first_node]["successors"]
+    @assert length(successors) == 1
+    second_node, probability = first(successors)
+    @assert probability == 1.0
     @assert length(data["nodes"][second_node]["successors"]) == 0
     return first_node, second_node
 end

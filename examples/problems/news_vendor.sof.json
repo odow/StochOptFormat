@@ -8,17 +8,13 @@
     "state_variables": {
       "x": {"initial_value": 0.0}
     },
-    "successors": [
-      {"node": "first_stage", "probability": 1.0}
-    ]
+    "successors": {"first_stage": 1.0}
   },
   "nodes": {
     "first_stage": {
       "subproblem": "first_stage_subproblem",
       "realizations": [],
-      "successors": [
-        {"node": "second_stage", "probability": 1.0}
-      ]
+      "successors": {"second_stage": 1.0}
     },
     "second_stage": {
       "subproblem": "second_stage_subproblem",
@@ -26,7 +22,7 @@
         {"probability": 0.4, "support": {"d": 10.0}},
         {"probability": 0.6, "support": {"d": 14.0}}
       ],
-      "successors": []
+      "successors": {}
     }
   },
   "subproblems": {

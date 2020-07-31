@@ -263,17 +263,13 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
     "state_variables": {
       "x": {"initial_value": 0.0}
     },
-    "successors": [
-      {"node": "first_stage", "probability": 1.0}
-    ]
+    "successors": {"first_stage": 1.0}
   },
   "nodes": {
     "first_stage": {
       "subproblem": "first_stage_subproblem",
       "realizations": [],
-      "successors": [
-        {"node": "second_stage", "probability": 1.0}
-      ]
+      "successors": {"second_stage": 1.0}
     },
     "second_stage": {
       "subproblem": "second_stage_subproblem",
@@ -281,7 +277,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
         {"probability": 0.4, "support": {"d": 10.0}},
         {"probability": 0.6, "support": {"d": 14.0}}
       ],
-      "successors": []
+      "successors": {}
     }
   },
   "subproblems": {
@@ -427,11 +423,10 @@ After the optional metadata keys, there are four required keys:
 
       The value of the state variable at the root node.
 
-  - `successors::List{Object}`
+  - `successors::Object`
 
-    The list of edges exiting the root node. Each object has two keys,
-    `node::String` and `probability::Number` which give the probability of
-    transitioning from the root node to `node`.
+    An object in which the keys correspond to nodes and the values correspond to
+    the probability of transitioning from the root node to the key node.
 
 - `nodes::Object`
 
@@ -462,11 +457,10 @@ After the optional metadata keys, there are four required keys:
       `random_variables`, and the values are the value of the random variable in
       that realization.
 
-  - `successors::List{Object}`
+  - `successors::Object`
 
-    The list of edges exiting the node. Each object has two keys, `node::String`
-    and `probability::Number` which give the probability of transitioning from
-    the current node to `node`.
+    An object in which the keys correspond to nodes and the values correspond to
+    the probability of transitioning from the current node to the key node.
 
 - `subproblems::Object`
 
