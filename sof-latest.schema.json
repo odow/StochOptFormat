@@ -124,13 +124,6 @@
             "items": {
                 "$ref": "#/definitions/scenario"
             }
-        },
-        "historical_scenarios": {
-            "description": "Optional scenarios used when building the problem. Allows modellers to experiment with different stochastic processes.",
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/scenario"
-            }
         }
     },
     "definitions": {

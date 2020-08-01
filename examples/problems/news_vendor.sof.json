@@ -113,20 +113,5 @@
         {"node": "second_stage", "support": {"d": 9.0}}
       ]
     }
-  ],
-  "historical_scenarios": [
-    {
-      "probability": 0.5,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 10.0}}
-      ]
-    }, {
-      "probability": 0.5,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 14.0}}
-      ]
-    }
   ]
 }

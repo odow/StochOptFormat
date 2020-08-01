@@ -368,21 +368,6 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
         {"node": "second_stage", "support": {"d": 9.0}}
       ]
     }
-  ],
-  "historical_scenarios": [
-    {
-      "probability": 0.5,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 10.0}}
-      ]
-    }, {
-      "probability": 0.5,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 14.0}}
-      ]
-    }
   ]
 }
 ```
@@ -492,7 +477,7 @@ After the optional metadata keys, there are four required keys:
 
     The subproblem corresponding to the node as a MathOptFormat object.
 
-There are also two optional keys:
+There is also an optional key:
 
 - `validation_scenarios::List{Object}`
 
@@ -507,30 +492,6 @@ There are also two optional keys:
   not contained in the corresponding `realizations` field of the node. Testing a
   policy is a larger topic, so we expand on it in the section
   [Problems, policies, and algorithms](#problems-policies-and-algorithms).
-
-- `historical_scenarios::List{Object}`.
-
-  The value of this key is identical to `validation_scenarios`, except that
-  these scenarios should be any historical data that was used when first
-  constructing the problem. This allows modellers to experiment with different representations of the underlying stochastic process.
-
-  In our example, the second stage realizations have probilities of 0.6 and 0.4.
-  However, there are two `historical_scenarios`, each with probability 0.5, so
-  one may infer that another reasonable model would be to give the node
-  realizations probabilities of 0.5 and 0.5.
-
-Providing both `realizations` and `historical_scenarios` allows us to to do two
-things:
-
-1. Solve a problem _as formulated by someone else_.
-2. Experiment with different formulations for the stochasticity of the same
-   underlying decision problem.
-
-For example, we can build a linear policy graph assuming that the random
-variables are stagewise independent. However, the historical data may have some
-dependence (e.g., autoregressive). Providing historical data allows the modeller
-to experiment with different stochastic processes, without corrupting the
-testing procedure by using the test scenarios to build the model.
 
 ## Problems, policies, and algorithms
 
