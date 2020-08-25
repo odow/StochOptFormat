@@ -139,7 +139,7 @@
                 },
                 "subproblem": {
                     "description": "The subproblem in MathOptFormat.",
-                    "$ref": "https://jump.dev/MathOptFormat/mof.0.4.schema.json"
+                    "$ref": "https://jump.dev/MathOptFormat/schemas/mof.0.4.schema.json"
                 },
                 "realizations": {
                     "type": "array",
