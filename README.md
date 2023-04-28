@@ -61,8 +61,9 @@ the _policy graph_ [1].
 
 Those papers present the reasoning of behind many aspects of their design, along
 with the necessary historical context. However, most of the key ideas can be
-grasped from the example in the next section. In particular, the example contains
-all the details required to fully describe a two-stage stochastic linear program.
+grasped from the example in the next section. In particular, the example
+contains all the details required to fully describe a two-stage stochastic
+linear program.
 
 MathOptInterface and the policy graph are synergistic with each other. We can
 use the policy graph to describe the high-level structure of a stochastic
@@ -70,8 +71,8 @@ program, and we can use MathOptInterface to describe the low-level optimization
 problem faced by the agent within each stage (really, node of the policy graph).
 Putting these two concepts together leads to a natural data structure for
 multistage stochastic programs. StochOptFormat is a serialization of this data
-structure into the JSON file format, hence allowing easy access from almost all
-major computer languages.
+structure into the JSON file format, hence allowing easy access from all major
+programming languages.
 
 StochOptFormat is inspired by our work on [JuMP] and [SDDP.jl]. However, it is
 not exclusive to Julia or stochastic dual dynamic programming. For example, this
@@ -79,29 +80,29 @@ format makes it possible to read multistage stochastic programming problems into
 Python and solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
 We have not implemented the code yet because this is not our area of expertise.
 
-In creating StochOptFormat, we wanted to achieve the following:
+When developing StochOptFormat, we set out to create:
 
-- We wanted a format that is able to scale to problems with hundreds of
-  decision periods, state variables, and control variables.
-- We wanted a format that was rigidly defined by a schema, so that files could
-  be validated for syntactic correctness.
-- We wanted a format that was not restricted to linear programming; we want to
-  add cones and integrality.
-- We wanted a format based on the policy graph so that we can go beyond the
-  two-stage realm. Doing so allows us to represent a very large class of problem
-  structures, including finite and infinite horizon problems, problems with
-  linear stagewise independence, problems with Markovian structure, and problems
-  represented by an arbitrary scenario tree.
-- We wanted a well-defined notion of what a solution to a stochastic program is.
-  (Spoiler alert: it is not the first stage decision. See
-  [Problems, policies, and algorithms](#problems-policies-and-algorithms).)
+ - A format that is able to scale to problems with hundreds of decision periods,
+   state variables, and control variables.
+ - A format that was rigidly defined by a schema, so that files could be
+   validated for syntactic correctness.
+ - A format that was not restricted to linear programming; we want to add cones
+   and integrality.
+ - A format based on the policy graph so that we can go beyond the two-stage
+   realm. Doing so allows us to represent a very large class of problem
+   structures, including finite and infinite horizon problems, problems with
+   linear stagewise independence, problems with Markovian structure, and problems
+   represented by an arbitrary scenario tree.
+ - A well-defined notion of what a solution to a stochastic program is. (Spoiler
+   alert: it is not the first stage decision. See
+   [Problems, policies, and algorithms](#problems-policies-and-algorithms).)
 
 Equally important as the things that we set out to do, are the things that we
 did _not_ set out to do:
 
-  - We did not try to incorporate chance constraints
-  - We did not try to incorporate continuous random variables
-  - We did not try to incorporate decision-hazard nodes.
+ - We did not try to incorporate chance constraints
+ - We did not try to incorporate continuous random variables
+ - We did not try to incorporate decision-hazard nodes.
 
 Finally, StochOptFormat is not an algebraic modeling language for stochastic
 programming. Instead, it is an instance format [5].
@@ -415,8 +416,7 @@ After the optional metadata keys, there are four required keys:
   - `realizations::List{Object}`
 
     A list of objects describing the finite discrete realizations of the
-    stagewise-independent random variable in each node. Each object has two
-    required keys:
+    independent random variable in each node. Each object has two required keys:
 
     - `probability::Number`
 
@@ -534,6 +534,7 @@ report the following for each node in each scenario:
 
 Solutions should be outputted to a JSON file that conforms to the schema
 available at [`https://odow.github.io/StochOptFormat/versions/sof-result.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-result.schema.json).
+
 Most notably, the result file must include the [SHA-256 checksum](https://en.wikipedia.org/wiki/SHA-2)
 of the problem file used to generate the policy to ensure that the two files can
 be linked.
@@ -617,7 +618,8 @@ Be aware not to over-fit the policy to the validation data!
   parameterized `ScalarAffineFunction`, or a `ScalarQuadraticFunction` without
   random variables.
 
-- Q: Follow up to the previous question. I want to have `random_variable * x * y`.
+- Q: Follow up to the previous question. I want to have
+  `random_variable * x * y`.
 
   A: Changing the quadratic coefficient matrices in solvers is slow, and doing
   so could easily make the problem non-convex. If you really want to, you could
@@ -647,21 +649,24 @@ Be aware not to over-fit the policy to the validation data!
   [doi: 10.1002/net.21932](https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932)
   [[preprint]](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)
 
-[2] Legat, B., Dowson, O., Garcia, J., Lubin, M. (2022). MathOptInterface: a data
-  structure for mathematical optimization problems. _INFORMS Journal on Computing._
-  34(2), 671–1304. [[preprint]](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
+[2] Legat, B., Dowson, O., Garcia, J., Lubin, M. (2022). MathOptInterface: a
+  data structure for mathematical optimization problems. _INFORMS Journal on
+  Computing._ 34(2), 671–1304.
+  [[preprint]](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
   [[repository]](https://github.com/jump-dev/MathOptFormat)
 
-[3] Fourer, R., Gassmann, H.I., Ma, J. and Martin, R.K. (2009). An XML-based schema for
-  stochastic programs. _Ann Oper Res_, 166, 313-337.
+[3] Fourer, R., Gassmann, H.I., Ma, J. and Martin, R.K. (2009). An XML-based
+  schema for stochastic programs. _Ann Oper Res_, 166, 313-337.
   [doi: 10.1007/s10479-008-0419-x](https://link.springer.com/content/pdf/10.1007/s10479-008-0419-x.pdf)
 
 [4] Gassmann, H.I. and Kristjánsson, B. (2008). The SMPS format explained. _IMA
-  Journal of Management Mathematics_, 19(4), 347-377. [doi: 10.1093/imaman/dpm007](http://maximal.net/resources/GassmannKristjansson_dpm007v1.pdf)
+  Journal of Management Mathematics_, 19(4), 347-377.
+  [doi: 10.1093/imaman/dpm007](http://maximal.net/resources/GassmannKristjansson_dpm007v1.pdf)
 
-[5] Gassmann, H.I., Ma, J. and Martin, R.K. (2011). Instance Formats for Mathematical
-  Optimization Models. In _Wiley Encyclopedia of Operations Research and Management
-  Science_ (eds J.J. Cochran, L.A. Cox, P. Keskinocak, J.P. Kharoufeh and J.C. Smith).
+[5] Gassmann, H.I., Ma, J. and Martin, R.K. (2011). Instance Formats for
+  Mathematical Optimization Models. In _Wiley Encyclopedia of Operations
+  Research and Management Science_ (eds J.J. Cochran, L.A. Cox, P. Keskinocak,
+  J.P. Kharoufeh and J.C. Smith).
   [doi: 10.1002/9780470400531.eorms0411](https://doi.org/10.1002/9780470400531.eorms0411)
 
 [examples directory]: https://github.com/odow/StochOptFormat/tree/master/examples
