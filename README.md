@@ -533,7 +533,7 @@ report the following for each node in each scenario:
 - The dual solution (if one exists) for all constraints in the subproblem.
 
 Solutions should be outputted to a JSON file that conforms to the schema
-available at [`https://odow.github.io/StochOptFormat/sof_result.schema.json`](https://odow.github.io/StochOptFormat/sof_result.schema.json).
+available at [`https://odow.github.io/StochOptFormat/versions/sof-result.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-result.schema.json).
 Most notably, the result file must include the [SHA-256 checksum](https://en.wikipedia.org/wiki/SHA-2)
 of the problem file used to generate the policy to ensure that the two files can
 be linked.
