@@ -20,10 +20,10 @@ a guide, rather than a state-of-the-art implementation.
 - [Oscar Dowson](http://github.com/odow)
 - [Joaquim Garcia](http://github.com/joaquimg) (PSR-Inc, PUC-Rio)
 
-_Note: StochOptFormat is in development. Things may change! If you have
-suggestions or comments, please [open an issue](https://github.com/odow/StochOptFormat/issues/new)._
+_Note: StochOptFormat is in development. If you have suggestions or comments,
+please [open an issue](https://github.com/odow/StochOptFormat/issues/new)._
 
-### Sections
+### Contents
 
 - [Motivation and design principles](#motivation-and-design-principles)
 - [Example](#example)
@@ -97,10 +97,10 @@ In creating StochOptFormat, we wanted to achieve the following:
   [Problems, policies, and algorithms](#problems-policies-and-algorithms).)
 
 Equally important as the things that we set out to do, are the things that we
-did _not_ set out to do.
+did _not_ set out to do:
 
-  - We did not try to incorporate chance constraints.
-  - We did not try to incorporate continuous random variables.
+  - We did not try to incorporate chance constraints
+  - We did not try to incorporate continuous random variables
   - We did not try to incorporate decision-hazard nodes.
 
 Finally, StochOptFormat is not an algebraic modeling language for stochastic
@@ -528,8 +528,8 @@ _out-of-sample_ simulation on a finite discrete set of scenarios provided in the
 Solution algorithms should evaluate their policy on each of these scenarios and
 report the following for each node in each scenario:
 
-- The objective value of the subproblem excluding any cost-to-go terms.
-- The primal solution for all decision variables in the subproblem.
+- The objective value of the subproblem excluding any cost-to-go terms
+- The primal solution for all decision variables in the subproblem
 - The dual solution (if one exists) for all constraints in the subproblem.
 
 Solutions should be outputted to a JSON file that conforms to the schema
@@ -544,10 +544,6 @@ the above mentioned report, it is possible to evaluate multiple metrics of the
 resulting policy, such as expected objective values, and various quantiles.
 
 Be aware not to over-fit the policy to the validation data!
-
-In the future, we hope to start a competition for solving multistage programs.
-This competition would evaluate the performance of policies on a withheld set of
-test scenarios drawn from the same distribution as the validation data.
 
 ## FAQ
 
@@ -576,7 +572,7 @@ test scenarios drawn from the same distribution as the validation data.
 - Q: What happened to SMPS?
 
   A: SMPS is too limiting for multistage problems. We hope to implement a
-  converter between SMPS and StochOptFormat at some point... Want to help?
+  converter between SMPS and StochOptFormat at some point.
 
 - Q: This seems catered to SDDP; I just have some scenarios.
 
@@ -651,9 +647,9 @@ test scenarios drawn from the same distribution as the validation data.
   [doi: 10.1002/net.21932](https://onlinelibrary.wiley.com/doi/full/10.1002/net.21932)
   [[preprint]](http://www.optimization-online.org/DB_HTML/2018/11/6914.html)
 
-[2] Legat, B., Dowson, O., Garcia, J.D. and Lubin, M. (2020). MathOptInterface:
-  a data structure for mathematical optimization problems.
-  [[preprint]](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
+[2] Legat, B., Dowson, O., Garcia, J., Lubin, M. (2022). MathOptInterface: a data
+  structure for mathematical optimization problems. _INFORMS Journal on Computing._
+  34(2), 671–1304. [[preprint]](http://www.optimization-online.org/DB_HTML/2020/02/7609.html)
   [[repository]](https://github.com/jump-dev/MathOptFormat)
 
 [3] Fourer, R., Gassmann, H.I., Ma, J. and Martin, R.K. (2009). An XML-based schema for
