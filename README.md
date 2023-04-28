@@ -7,8 +7,7 @@ optimization problems called _StochOptFormat_, with the file extension
 For convenience, we sometimes abbreviate StochOptFormat to _SOF_.
 
 StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
-available at [`https://odow.github.io/StochOptFormat/sof-latest.schema.json`](https://odow.github.io/StochOptFormat/sof-latest.schema.json).
-Other versions are also available in the [versions directory].
+available at [`https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json).
 
 The [examples directory] of the project's [Github page](https://github.com/odow/StochOptFormat)
 contains a pedagogical implementation of Benders decomposition for two stage
@@ -18,7 +17,7 @@ a guide, rather than a state-of-the-art implementation.
 
 **Authors**
 
-- [Oscar Dowson](http://github.com/odow) (Northwestern)
+- [Oscar Dowson](http://github.com/odow)
 - [Joaquim Garcia](http://github.com/joaquimg) (PSR-Inc, PUC-Rio)
 
 _Note: StochOptFormat is in development. Things may change! If you have
@@ -59,9 +58,6 @@ is a data structure for optimization called MathOptInterface [2]. In addition,
 we have also set about standardizing how we formulate multistage stochastic
 programming problems. The result is a natural decomposition of the problem into
 the _policy graph_ [1].
-
-**We highly recommend that you do not read further without reading (at minimum)
-sections 1, 2, and 3 of [1] and sections 1, 2, 3, and 5 of [2].**
 
 Those papers present the reasoning of behind many aspects of their design, along
 with the necessary historical context. However, most of the key ideas can be
@@ -287,19 +283,19 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
       },
       "random_variables": [],
       "subproblem": {
-        "version": {"major": 0, "minor": 4},
+        "version": {"major": 1, "minor": 2},
         "variables": [{"name": "x_in"}, {"name": "x_out"}],
         "objective": {
           "sense": "max",
           "function": {
-            "head": "ScalarAffineFunction",
+            "type": "ScalarAffineFunction",
             "terms": [{"variable": "x_out", "coefficient": -1.0}],
             "constant": 0.0
           }
         },
         "constraints": [{
-          "function": {"head": "SingleVariable", "variable": "x_out"},
-          "set": {"head": "GreaterThan", "lower": 0.0}
+          "function": {"type": "Variable", "name": "x_out"},
+          "set": {"type": "GreaterThan", "lower": 0.0}
         }]
       }
     },
@@ -309,65 +305,56 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
       },
       "random_variables": ["d"],
       "subproblem": {
-        "version": {"major": 0, "minor": 4},
+        "version": {"major": 1, "minor": 2},
         "variables": [
           {"name": "x_in"}, {"name": "x_out"}, {"name": "u"}, {"name": "d"}
         ],
         "objective": {
           "sense": "max",
           "function": {
-            "head": "ScalarAffineFunction",
+            "type": "ScalarAffineFunction",
             "terms": [{"variable": "u", "coefficient": 1.5}],
             "constant": 0.0
           }
         },
         "constraints": [{
           "function": {
-            "head": "ScalarAffineFunction",
+            "type": "ScalarAffineFunction",
             "terms": [
               {"variable": "u", "coefficient": 1.0},
               {"variable": "x_in", "coefficient": -1.0}
             ],
             "constant": 0.0
           },
-          "set": {"head": "LessThan", "upper": 0.0}
+          "set": {"type": "LessThan", "upper": 0.0}
         }, {
           "function": {
-            "head": "ScalarAffineFunction",
+            "type": "ScalarAffineFunction",
             "terms": [
               {"variable": "u", "coefficient": 1.0},
               {"variable": "d", "coefficient": -1.0}
             ],
             "constant": 0.0
           },
-          "set": {"head": "LessThan", "upper": 0.0}
+          "set": {"type": "LessThan", "upper": 0.0}
         }, {
-          "function": {"head": "SingleVariable", "variable": "u"},
-          "set": {"head": "GreaterThan", "lower": 0.0}
+          "function": {"type": "Variable", "name": "u"},
+          "set": {"type": "GreaterThan", "lower": 0.0}
         }]
       }
     }
   },
   "validation_scenarios": [
-    {
-      "probability": 0.4,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 10.0}}
-      ]
-    }, {
-      "probability": 0.3,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 14.0}}
-      ]
-    }, {
-      "probability": 0.3,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 9.0}}
-      ]
-    }
+    [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 10.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 14.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 9.0}}
+    ]
   ]
 }
 ```
@@ -479,18 +466,16 @@ After the optional metadata keys, there are four required keys:
 
 There is also an optional key:
 
-- `validation_scenarios::List{Object}`
+- `validation_scenarios::List{List}`
 
   Scenarios to be used to evaluate a policy. `validation_scenarios` is a list,
-  containing one element for each scenario in the test set. Each element is an
-  object with two fields: `probability::Number` and `scenario::List{Object}`.
-  The `probability` gives the nominal probability associated with the scenario.
-  Each `scenario` is a list of objects. Each object has two required nodes:
-  `node::String` and `support::Object`. `node` is the name of the node to visit,
-  and `support` is the realization of the random variable at that node. Note
-  that `support` may be an _out-of-sample_ realization, that is, one which is
-  not contained in the corresponding `realizations` field of the node. Testing a
-  policy is a larger topic, so we expand on it in the section
+  containing one element for each scenario in the test set. Each element is a
+  list of objects. Each object has two required nodes: `node::String` and
+  `support::Object`. `node` is the name of the node to visit, and `support` is
+  the realization of the random variable at that node. Note that `support` may
+  be an _out-of-sample_ realization, that is, one which is not contained in the
+  corresponding `realizations` field of the node. Testing a policy is a larger
+  topic, so we expand on it in the section
   [Problems, policies, and algorithms](#problems-policies-and-algorithms).
 
 ## Problems, policies, and algorithms

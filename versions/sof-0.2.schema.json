@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/schema#",
-    "$id": "https://odow.github.io/StochOptFormat/sof-latest.schema.json",
+    "$id": "https://odow.github.io/StochOptFormat/sof-0.2.schema.json",
     "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
     "required": ["version", "root", "nodes", "subproblems"],
@@ -122,7 +122,22 @@
             "description": "Out-of-sample scenarios used to evaluate the policy.",
             "type": "array",
             "items": {
-                "$ref": "#/definitions/scenario"
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["node", "support"],
+                    "properties": {
+                        "node": {
+                            "type": "string"
+                        },
+                        "support": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
             }
         }
     },
@@ -175,35 +190,7 @@
                 },
                 "subproblem": {
                     "description": "The subproblem in MathOptFormat.",
-                    "$ref": "https://jump.dev/MathOptFormat/schemas/mof.0.4.schema.json"
-                }
-            }
-        },
-        "scenario": {
-            "required": ["probability", "scenario"],
-            "properties": {
-                "probability": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
-                },
-                "scenario": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["node", "support"],
-                        "properties": {
-                            "node": {
-                                "type": "string"
-                            },
-                            "support": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "type": "number"
-                                }
-                            }
-                        }
-                    }
+                    "$ref": "https://jump.dev/MathOptFormat/schemas/mof.1.2.schema.json"
                 }
             }
         }
