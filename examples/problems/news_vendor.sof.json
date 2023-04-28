@@ -32,19 +32,19 @@
       },
       "random_variables": [],
       "subproblem": {
-        "version": {"major": 0, "minor": 4},
+        "version": {"major": 1, "minor": 2},
         "variables": [{"name": "x_in"}, {"name": "x_out"}],
         "objective": {
           "sense": "max",
           "function": {
-            "head": "ScalarAffineFunction",
+            "type": "ScalarAffineFunction",
             "terms": [{"variable": "x_out", "coefficient": -1.0}],
             "constant": 0.0
           }
         },
         "constraints": [{
-          "function": {"head": "SingleVariable", "variable": "x_out"},
-          "set": {"head": "GreaterThan", "lower": 0.0}
+          "function": {"type": "Variable", "name": "x_out"},
+          "set": {"type": "GreaterThan", "lower": 0.0}
         }]
       }
     },
@@ -54,64 +54,55 @@
       },
       "random_variables": ["d"],
       "subproblem": {
-        "version": {"major": 0, "minor": 4},
+        "version": {"major": 1, "minor": 2},
         "variables": [
           {"name": "x_in"}, {"name": "x_out"}, {"name": "u"}, {"name": "d"}
         ],
         "objective": {
           "sense": "max",
           "function": {
-            "head": "ScalarAffineFunction",
+            "type": "ScalarAffineFunction",
             "terms": [{"variable": "u", "coefficient": 1.5}],
             "constant": 0.0
           }
         },
         "constraints": [{
           "function": {
-            "head": "ScalarAffineFunction",
+            "type": "ScalarAffineFunction",
             "terms": [
               {"variable": "u", "coefficient": 1.0},
               {"variable": "x_in", "coefficient": -1.0}
             ],
             "constant": 0.0
           },
-          "set": {"head": "LessThan", "upper": 0.0}
+          "set": {"type": "LessThan", "upper": 0.0}
         }, {
           "function": {
-            "head": "ScalarAffineFunction",
+            "type": "ScalarAffineFunction",
             "terms": [
               {"variable": "u", "coefficient": 1.0},
               {"variable": "d", "coefficient": -1.0}
             ],
             "constant": 0.0
           },
-          "set": {"head": "LessThan", "upper": 0.0}
+          "set": {"type": "LessThan", "upper": 0.0}
         }, {
-          "function": {"head": "SingleVariable", "variable": "u"},
-          "set": {"head": "GreaterThan", "lower": 0.0}
+          "function": {"type": "Variable", "name": "u"},
+          "set": {"type": "GreaterThan", "lower": 0.0}
         }]
       }
     }
   },
   "validation_scenarios": [
-    {
-      "probability": 0.4,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 10.0}}
-      ]
-    }, {
-      "probability": 0.3,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 14.0}}
-      ]
-    }, {
-      "probability": 0.3,
-      "scenario": [
-        {"node": "first_stage", "support": {}},
-        {"node": "second_stage", "support": {"d": 9.0}}
-      ]
-    }
+    [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 10.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 14.0}}
+    ], [
+      {"node": "first_stage", "support": {}},
+      {"node": "second_stage", "support": {"d": 9.0}}
+    ]
   ]
 }

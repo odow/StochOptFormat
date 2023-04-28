@@ -1,3 +1,8 @@
+# Copyright (c) 2020: Oscar Dowson, Joaquim Dias Garcia, and contributors
+#
+# Use of this source code is governed by an MIT-style license that can be found
+# in the LICENSE.md file or at https://opensource.org/licenses/MIT.
+
 # TwoStageBenders.py
 #
 # Author
@@ -12,7 +17,7 @@
 #
 # Usage
 #   python TwoStageBenders.py [problem]
-#   python TwoStageBenders.py ../problems/newsvendor.sof.json
+#   python TwoStageBenders.py ../problems/news_vendor.sof.json
 #
 # Notes
 #   You need to install python, and have the following packages installed:
@@ -26,11 +31,14 @@ import os
 from pulp import *
 
 class TwoStageProblem:
-    _dir = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    _dir = os.path.join(
+        os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        ),
+        'versions',
     )
-    schema_filename = os.path.join(_dir, 'sof-latest.schema.json')
-    result_schema_filename = os.path.join(_dir, 'sof_result.schema.json')
+    schema_filename = os.path.join(_dir, 'sof-0.2.schema.json')
+    result_schema_filename = os.path.join(_dir, 'sof-result.schema.json')
 
     def __init__(self, filename, validate = True):
         with open(filename, 'rb') as io:
@@ -90,8 +98,7 @@ class TwoStageProblem:
         if scenarios is None:
             scenarios = self.data['validation_scenarios']
         solutions = []
-        for s_dict in scenarios:
-            scenario = s_dict['scenario']
+        for scenario in scenarios:
             assert(len(scenario) == 2)
             first_sol = self._solve_first_stage()
             incoming_state = {
@@ -146,9 +153,9 @@ class TwoStageProblem:
             vars[x['name']] = LpVariable(x['name'])
         # Add the objective function
         obj = sp['objective']['function']
-        if obj['head'] == 'SingleVariable':
-            prob += vars[obj['variable']]
-        elif obj['head'] == 'ScalarAffineFunction':
+        if obj['type'] == 'Variable':
+            prob += vars[obj['name']]
+        elif obj['type'] == 'ScalarAffineFunction':
             prob += lpSum(
                 term['coefficient'] * vars[term['variable']] for term in obj['terms']
             ) + obj['constant']
@@ -157,31 +164,31 @@ class TwoStageProblem:
         # Add the constraints
         for c in sp['constraints']:
             f, s = c['function'], c['set']
-            if f['head'] == 'SingleVariable':
-                x = f['variable']
-                if s['head'] == 'GreaterThan':
+            if f['type'] == 'Variable':
+                x = f['name']
+                if s['type'] == 'GreaterThan':
                     vars[x].lowBound = s['lower']
-                elif s['head'] == 'LessThan':
+                elif s['type'] == 'LessThan':
                     vars[x].upBound = s['upper']
-                elif s['head'] == 'EqualTo':
+                elif s['type'] == 'EqualTo':
                     vars[x].lowBound = s['value']
                     vars[x].upBound = s['value']
-                elif s['head'] == 'Interval':
+                elif s['type'] == 'Interval':
                     vars[x].lowBound = s['lower']
                     vars[x].upBound = s['upper']
                 else:
                     raise(Exception('Unsupported set: ' + str(s)))
-            elif f['head'] == 'ScalarAffineFunction':
+            elif f['type'] == 'ScalarAffineFunction':
                 lhs = lpSum(
                     term['coefficient'] * vars[term['variable']] for term in f['terms']
                 ) + f['constant']
-                if s['head'] == 'GreaterThan':
+                if s['type'] == 'GreaterThan':
                     prob += lhs >= s['lower']
-                elif s['head'] == 'LessThan':
+                elif s['type'] == 'LessThan':
                     prob += lhs <= s['upper']
-                elif s['head'] == 'EqualTo':
+                elif s['type'] == 'EqualTo':
                     prob += lhs == s['value']
-                elif s['head'] == 'Interval':
+                elif s['type'] == 'Interval':
                     prob += lhs <= s['upper']
                     prob += lhs >= s['lower']
                 else:

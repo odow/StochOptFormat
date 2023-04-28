@@ -1,3 +1,8 @@
+# Copyright (c) 2020: Oscar Dowson, Joaquim Dias Garcia, and contributors
+#
+# Use of this source code is governed by an MIT-style license that can be found
+# in the LICENSE.md file or at https://opensource.org/licenses/MIT.
+
 # TwoStageBenders.jl
 #
 # Author
@@ -12,32 +17,33 @@
 #
 # Usage
 #   julia TwoStageBenders.jl [problem]
-#   julia TwoStageBenders.jl ../problems/newsvendor.sof.json
+#   julia TwoStageBenders.jl ../problems/news_vendor.sof.json
 #
 # Notes
 #   You need to install Julia, and have the following packages installed:
-#       Clp, JSON, JSONSchema, JuMP, and SHA.
+#       HiGHS, JSON, JSONSchema, JuMP, and SHA.
+
 module TwoStageBenders
 
-import Clp
+import HiGHS
 import JSON
 import JSONSchema
 import JuMP
 import Printf
 import SHA
 
-const SCHEMA_FILENAME =
-    joinpath(dirname(dirname(@__DIR__)), "sof-latest.schema.json")
+const SCHEMA_DIR = joinpath(dirname(dirname(@__DIR__)), "versions")
 
-const RESULT_SCHEMA_FILENAME =
-    joinpath(dirname(dirname(@__DIR__)), "sof_result.schema.json")
+const SCHEMA_FILENAME = joinpath(SCHEMA_DIR, "sof-0.2.schema.json")
+
+const RESULT_SCHEMA_FILENAME = joinpath(SCHEMA_DIR, "sof-result.schema.json")
 
 struct TwoStageProblem
     sha256::String
     first::JuMP.Model
     second::JuMP.Model
     state_variables::Set{String}
-    validation_scenarios::Vector{Dict{String, Any}}
+    validation_scenarios::Vector{Any}
 end
 
 """
@@ -63,7 +69,7 @@ function TwoStageProblem(filename::String; validate::Bool = true)
         _mathoptformat_to_jump(data, first),
         _mathoptformat_to_jump(data, second),
         Set{String}(),
-        get(data, "validation_scenarios", Dict{String, Any}[]),
+        get(data, "validation_scenarios", Any[]),
     )
     for k in keys(problem.first.ext[:state_variables])
         push!(problem.state_variables, k)
@@ -108,7 +114,7 @@ function _mathoptformat_to_jump(data, name)
     write(io, JSON.json(sp["subproblem"]))
     seekstart(io)
     JuMP.MOI.read!(io, model)
-    subproblem = JuMP.Model(Clp.Optimizer)
+    subproblem = JuMP.Model(HiGHS.Optimizer)
     JuMP.MOI.copy_to(subproblem, model)
     JuMP.set_silent(subproblem)
     subproblem.ext[:state_variables] = sp["state_variables"]
@@ -131,6 +137,7 @@ end
 function _incoming_state(sp::JuMP.Model, name::String)
     return JuMP.variable_by_name(sp, sp.ext[:state_variables][name]["in"])
 end
+
 function _outgoing_state(sp::JuMP.Model, name::String)
     return JuMP.variable_by_name(sp, sp.ext[:state_variables][name]["out"])
 end
@@ -259,8 +266,7 @@ function evaluate(
     filename::Union{Nothing, String} = nothing
 )
     solutions = Vector{Dict{String, Any}}[]
-    for s_dict in scenarios
-        scenario = s_dict["scenario"]
+    for scenario in scenarios
         @assert length(scenario) == 2
         first_sol = _solve_first_stage(problem)
         incoming_state = Dict(
