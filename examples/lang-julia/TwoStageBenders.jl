@@ -61,8 +61,8 @@ function TwoStageProblem(filename::String; validate::Bool = true)
     if validate
         _validate(data; schema_filename = SCHEMA_FILENAME)
     end
-    @assert(data["version"]["major"] == 0)
-    @assert(data["version"]["minor"] == 2)
+    @assert data["version"]["major"] == 0
+    @assert data["version"]["minor"] == 2
     first, second = _get_stage_names(data)
     problem = TwoStageProblem(
         sha_256,
@@ -130,6 +130,7 @@ function _convert_realizations(realizations)
     for r in realizations
         r["support"] = convert(Dict{String, Float64}, r["support"])
     end
+    return
 end
 
 # These are helper functions to extract the incoming and outgoing state
@@ -292,11 +293,6 @@ function evaluate(
     end
     return solution
 end
-
-export
-    TwoStageProblem,
-    train,
-    evaluate
 
 end # module TwoStageBenders
 
