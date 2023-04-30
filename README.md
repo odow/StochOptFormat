@@ -4,24 +4,18 @@ This repository describes a data structure and file-format for stochastic
 optimization problems called _StochOptFormat_, with the file extension
 `.sof.json`.
 
-For convenience, we sometimes abbreviate StochOptFormat to _SOF_.
+For convenience, we abbreviate StochOptFormat to _SOF_.
 
-StochOptFormat is rigidly defined by the [JSON schema](http://JSON-schema.org)
-available at [`https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json).
+StochOptFormat is defined by the [JSON schema](http://JSON-schema.org)
+[`https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json).
 
-The [examples directory] of the project's [Github page](https://github.com/odow/StochOptFormat)
-contains a pedagogical implementation of Benders decomposition for two stage
-stochastic programs in Julia and Python, along with a JSON file for the
-news-vendor problem discussed in this documentation. The code is intended to be
-a guide, rather than a state-of-the-art implementation.
+_Note: StochOptFormat is in development. If you have suggestions or comments,
+please [open an issue](https://github.com/odow/StochOptFormat/issues/new)._
 
 **Authors**
 
 - [Oscar Dowson](http://github.com/odow)
-- [Joaquim Garcia](http://github.com/joaquimg) (PSR-Inc, PUC-Rio)
-
-_Note: StochOptFormat is in development. If you have suggestions or comments,
-please [open an issue](https://github.com/odow/StochOptFormat/issues/new)._
+- [Joaquim Garcia](http://github.com/joaquimg)
 
 ### Contents
 
@@ -40,64 +34,62 @@ please [open an issue](https://github.com/odow/StochOptFormat/issues/new)._
 
 Libraries of benchmark instances have been instrumental in driving progress in
 many areas of optimization. In stochastic programming, some effort has been made
-on this front (see, e.g., [https://www.stoprog.org/resources](https://www.stoprog.org/resources)).
+on this front (see, for example, [https://www.stoprog.org/resources](https://www.stoprog.org/resources)).
 However, the predominant file format for these problems, SMPS [4], does not
 scale to the types of problems we want to solve (large multistage stochastic
 programs), nor does it permit the variety of problem classes we want to study
-(e.g., stochastic conic programs).
+(for example, stochastic conic programs).
 
 A more recent attempt to standardize a file format for stochastic programming is
 the stochastic extension to OSiL [3]. StochOptFormat utilizes many of the
-underlying ideas, but has enough differences to justify the creation of a new
+underlying ideas, but it has enough differences to justify the creation of a new
 file format. In particular, we use a different standard form for a stochastic
-program.
+program and we do not use XML.
 
-Over the last 4 years, we (and the broader JuMP team) have set about reimagining
-how we formulate single period deterministic optimziation problems. The result
-is a data structure for optimization called MathOptInterface [2]. In addition,
-we have also set about standardizing how we formulate multistage stochastic
-programming problems. The result is a natural decomposition of the problem into
-the _policy graph_ [1].
+Over the last few years, we (and the broader JuMP team) have set about
+reimagining how we formulate single period deterministic optimziation problems.
+The result is a data structure for optimization called MathOptInterface [2]. In
+addition, we have also set about standardizing how we formulate multistage
+stochastic programming problems. The result is a natural decomposition of the
+problem into the _policy graph_ [1].
 
 Those papers present the reasoning of behind many aspects of their design, along
 with the necessary historical context. However, most of the key ideas can be
 grasped from the example in the next section. In particular, the example
 contains all the details required to fully describe a two-stage stochastic
-linear program.
+linear program. However, you should note that our work naturally extends beyond
+two-stage to multistage.
 
 MathOptInterface and the policy graph are synergistic with each other. We can
 use the policy graph to describe the high-level structure of a stochastic
 program, and we can use MathOptInterface to describe the low-level optimization
-problem faced by the agent within each stage (really, node of the policy graph).
-Putting these two concepts together leads to a natural data structure for
-multistage stochastic programs. StochOptFormat is a serialization of this data
-structure into the JSON file format, hence allowing easy access from all major
-programming languages.
+problem faced by the agent within each node of the policy graphs. Putting these
+two concepts together leads to a natural data structure for multistage
+stochastic programs. StochOptFormat is a serialization of this data structure
+into the JSON file format.
 
-StochOptFormat is inspired by our work on [JuMP] and [SDDP.jl]. However, it is
-not exclusive to Julia or stochastic dual dynamic programming. For example, this
-format makes it possible to read multistage stochastic programming problems into
-Python and solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
+StochOptFormat is inspired by our work on [JuMP](https://jump.dev) and
+[SDDP.jl](https://github.com/odow/SDDP.jl). However, it is not exclusive to
+Julia or stochastic dual dynamic programming. For example, our format would make
+it possible to read multistage stochastic programming problems into Python and
+solve them with the progressive hedging library [PySP](https://pyomo.readthedocs.io/en/stable/modeling_extensions/pysp.html).
 We have not implemented the code yet because this is not our area of expertise.
 
 When developing StochOptFormat, we set out to create:
 
  - A format that is able to scale to problems with hundreds of decision periods,
    state variables, and control variables.
- - A format that was rigidly defined by a schema, so that files could be
-   validated for syntactic correctness.
- - A format that was not restricted to linear programming; we want to add cones
-   and integrality.
+ - A format that was defined by a schema, so that files could be validated for
+   syntactic correctness.
+ - A format that was not restricted to linear programming.
  - A format based on the policy graph so that we can go beyond the two-stage
-   realm. Doing so allows us to represent a very large class of problem
+   realm. Policy graphs allow us to represent a very large class of problem
    structures, including finite and infinite horizon problems, problems with
-   linear stagewise independence, problems with Markovian structure, and problems
-   represented by an arbitrary scenario tree.
- - A well-defined notion of what a solution to a stochastic program is. (Spoiler
-   alert: it is not the first stage decision. See
-   [Problems, policies, and algorithms](#problems-policies-and-algorithms).)
+   linear stagewise independence, problems with Markovian structure, and
+   problems represented by an arbitrary scenario tree.
+ - A well-defined notion of what the solution to a stochastic program is.
 
-Equally important as the things that we set out to do, are the things that we
+Equally as important as the things that we set out to do, are the things that we
 did _not_ set out to do:
 
  - We did not try to incorporate chance constraints
@@ -107,13 +99,13 @@ did _not_ set out to do:
 Finally, StochOptFormat is not an algebraic modeling language for stochastic
 programming. Instead, it is an instance format [5].
 
-You should not write StochOptFormat files by hand. Nor should you need to
-consider the exact layout of the file when formulating your model. The analog is
-the MPS file format. No one writes MPS files by hand, and most people are
+You should not need to write StochOptFormat files by hand. Nor should you need
+to consider the exact layout of the file when formulating your model. The analog
+is the MPS file format. No one writes MPS files by hand, and most people are
 probably unaware of the exact structure and syntax of an MPS file. Instead, we
-use high-level algebraic modeling languages like [JuMP] to build models, and we
-expect our solvers to handle the difficulty of reading and writing the MPS
-files.
+use high-level algebraic modeling languages like [JuMP](https://jump.dev) to
+build models, and we expect our solvers to handle the difficulty of reading and
+writing the MPS files.
 
 ## Example
 
@@ -153,9 +145,10 @@ our earlier ideas.
   `to` node, and a `probability` of transitioning along the edge. Note that the
   sum of probabilities along outgoing edges of a node does not have to equal 1.
   This allows, for example, discount factors in cyclic graphs and nodes with no
-  children, see [1] for more details.
+  children; see [1] for more details.
 
-  In our example, there are two edges.
+  In our example, there are two edges:
+
     1. `root` to `first_stage` with probability 1
     2. `first_stage` to `second_stage` with probability 1
 
@@ -244,11 +237,12 @@ the decision is taken after observing the uncertainty.
 
 We encourage you to read the paper [1] which outlines the full complexity of
 problems that can be represented, including problems with Markovian structure
-and infinite horizon problems (i.e., cyclic policy graphs).
+and infinite horizon problems (that is, cyclic policy graphs).
 
 ### Problem in StochOptFormat
 
 Encoded in StochOptFormat, the newsvendor problem becomes:
+
 ```json
 {
   "author": "Oscar Dowson",
@@ -466,7 +460,7 @@ After the optional metadata keys, there are four required keys:
 
 There is also an optional key:
 
-- `validation_scenarios::List{List}`
+- `validation_scenarios::List{List{Object}}`
 
   Scenarios to be used to evaluate a policy. `validation_scenarios` is a list,
   containing one element for each scenario in the test set. Each element is a
@@ -500,11 +494,11 @@ introduce some additional vocabulary.
   graph. A decision rule is a function which maps the incoming state variable
   and realization of the random variable at a node to a value for each control
   variable. This function is typically an infinite dimensional object (since,
-  e.g., the state variables can be continuous).
+  for example, the state variables can be continuous).
 
 - Algorithm
 
-  An algorithm takes a problem as input, and constructs a policy as output.
+  An algorithm takes a problem as input and constructs a policy as output.
   Also called _solution method_ or _solver_.
 
 ### Evaluating the policy
@@ -516,7 +510,7 @@ computation time.
 In contrast, comparing two policies is not simple. First, a policy produces a
 distribution of outcomes, so ranking two policies requires a user-provided risk
 measure based on their risk preference. Moreover, two users may have different
-risk preferences, so there is not a uniquely optimal policy.
+risk preferences, so there is no uniquely optimal policy.
 
 Second, in many cases the policy is an infinite dimensional object, and the set
 of scenarios over which it should be evaluated is so large as to be intractable.
@@ -544,20 +538,17 @@ problem, but it does not solve the user's risk perference problem. However, with
 the above mentioned report, it is possible to evaluate multiple metrics of the
 resulting policy, such as expected objective values, and various quantiles.
 
-Be aware not to over-fit the policy to the validation data!
-
 ## FAQ
 
 - Q: The policy graph is too complicated. I just want a format for linear
   T-stage stochastic programs.
 
-  A: The policy graph does take some getting used to. But for a T-stage problem,
-  our format requires T subproblems, a list of the state variables, and a
-  sequence of edges. Of those things, only the list of edges would be
-  superfluous in a purely T-stage format. So, for the sake of a list of objects
-  like `{"node": "1", "probability": 1}`, we get a format that trivially extends
-  to infinite horizon problems and problems with a stochastic process that is
-  not stagewise independent.
+  A: For a T-stage problem, our format requires T subproblems, a list of the
+  state variables, and a sequence of edges. Of those things, only the list of
+  edges would be superfluous in a purely T-stage format. So, for the sake of a
+  list of objects like `{"node": "1", "probability": 1}`, we get a format that
+  trivially extends to infinite horizon problems and problems with a stochastic
+  process that is not stagewise independent.
 
 - Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
 
@@ -567,13 +558,12 @@ Be aware not to over-fit the policy to the validation data!
 
 - Q: You don't expect me to write these by hand do you?
 
-  A: No. We expect high-level libraries like [SDDP.jl] to do the reading and
-  writing for you.
+  A: No. We expect high-level libraries like [SDDP.jl](https://github.com/odow/SDDP.jl)
+  to do the reading and writing for you.
 
 - Q: What happened to SMPS?
 
-  A: SMPS is too limiting for multistage problems. We hope to implement a
-  converter between SMPS and StochOptFormat at some point.
+  A: SMPS is too limiting for multistage problems.
 
 - Q: This seems catered to SDDP; I just have some scenarios.
 
@@ -594,8 +584,8 @@ Be aware not to over-fit the policy to the validation data!
 
   A: Risk measures are not part of the problem. They are another input to the
   solution _algorithm_. Put another way, one constructs a risk-averse policy to
-  a problem, rather than finding a policy for a risk-averse problem. In
-  addition, many solution algorithms (e.g., robust optimization) do not need to
+  a problem, rather than finding a policy for a risk-averse problem. In addition
+  many solution algorithms (for example, robust optimization) do not need to
   consider risk measures.
 
 - Q: I don't like JSON.
@@ -634,13 +624,14 @@ Be aware not to over-fit the policy to the validation data!
 ## Implementations
 
 - Pedagogical Python code for solving two-stage stochastic linear programs using
-  Benders decomposition and [PuLP] is available in the [examples directory].
+  Benders decomposition and [PuLP](https://coin-or.github.io/pulp/) is available
+  in the [examples directory](https://github.com/odow/StochOptFormat/tree/master/examples).
 
 - Pedagogical Julia code for solving two-stage stochastic linear programs using
-  Benders decomposition and [JuMP] is available in the [examples directory].
+  Benders decomposition and [JuMP](https://jump.dev) is available in the [examples directory](https://github.com/odow/StochOptFormat/tree/master/examples).
 
-- Experimental support for reading and writing StochOptFormat files is available
-  in the [SDDP.jl] libary.
+- Support for reading and writing StochOptFormat files is available in the
+  [SDDP.jl](https://github.com/odow/SDDP.jl) libary.
 
 ## References
 
@@ -668,9 +659,3 @@ Be aware not to over-fit the policy to the validation data!
   Research and Management Science_ (eds J.J. Cochran, L.A. Cox, P. Keskinocak,
   J.P. Kharoufeh and J.C. Smith).
   [doi: 10.1002/9780470400531.eorms0411](https://doi.org/10.1002/9780470400531.eorms0411)
-
-[examples directory]: https://github.com/odow/StochOptFormat/tree/master/examples
-[versions directory]: https://github.com/odow/StochOptFormat/tree/master/versions
-[JuMP]: https://jump.dev
-[PuLP]: https://coin-or.github.io/pulp/
-[SDDP.jl]: https://odow.github.io/SDDP.jl/latest
