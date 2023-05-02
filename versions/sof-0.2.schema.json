@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/schema#",
-    "$id": "https://odow.github.io/StochOptFormat/sof-0.2.schema.json",
+    "$id": "https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json",
     "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
     "required": ["version", "root", "nodes", "subproblems"],
@@ -9,14 +9,7 @@
             "description": "The version of StochOptFormat that this schema validates against.",
             "type": "object",
             "required": ["minor", "major"],
-            "properties": {
-                "minor": {
-                    "const": 2
-                },
-                "major": {
-                    "const": 0
-                }
-            }
+            "properties": {"minor": {"const": 2}, "major": {"const": 0}}
         },
         "name": {
             "description": "The name of the problem.",
@@ -70,9 +63,7 @@
                 "type": "object",
                 "required": ["subproblem", "realizations", "successors"],
                 "properties": {
-                    "subproblem": {
-                        "type": "string"
-                    },
+                    "subproblem": {"type": "string"},
                     "realizations": {
                         "type": "array",
                         "items": {
@@ -86,9 +77,7 @@
                                 },
                                 "support": {
                                     "type": "object",
-                                    "additionalProperties": {
-                                        "type": "number"
-                                    }
+                                    "additionalProperties": {"type": "number"}
                                 }
                             }
                         }
@@ -104,18 +93,36 @@
                 }
             }
         },
-        "edges": {
-            "description": "An array of edges in the policy graph.",
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/edge"
-            }
-        },
         "subproblems": {
             "description": "An object of subproblems. Multiple nodes can point to the same subproblem.",
             "type": "object",
             "additionalProperties": {
-                "$ref": "#/definitions/subproblem"
+                "description": "A subproblem in the policy graph.",
+                "type": "object",
+                "required": ["state_variables", "random_variables", "subproblem"],
+                "properties": {
+                    "state_variables": {
+                        "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the subproblem.",
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "required": ["in", "out"],
+                            "properties": {
+                                "in": {"type": "string"},
+                                "out": {"type": "string"}
+                            }
+                        }
+                    },
+                    "random_variables": {
+                        "description": "An array containing the names of the random variables in the subproblem.",
+                        "type": "array",
+                        "items": {"type": "string"}
+                    },
+                    "subproblem": {
+                        "description": "The subproblem in MathOptFormat. MOF is backward compatible, so we support all v1.X versions.",
+                        "$ref": "https://jump.dev/MathOptFormat/schemas/mof.1.2.schema.json"
+                    }
+                }
             }
         },
         "validation_scenarios": {
@@ -127,76 +134,12 @@
                     "type": "object",
                     "required": ["node", "support"],
                     "properties": {
-                        "node": {
-                            "type": "string"
-                        },
+                        "node": {"type": "string"},
                         "support": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
-                            }
+                            "additionalProperties": {"type": "number"}
                         }
                     }
-                }
-            }
-        }
-    },
-    "definitions": {
-        "edge": {
-            "description": "An edge in the policy graph, describing a transition from node `from` to node `to` with probability `probability`.",
-            "type": "object",
-            "required": ["from", "to", "probability"],
-            "properties": {
-                "from": {
-                    "type": "string"
-                },
-                "to": {
-                    "type": "string"
-                },
-                "probability": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
-                }
-            }
-        },
-        "subproblem": {
-            "description": "A subproblem in the policy graph.",
-            "type": "object",
-            "required": ["state_variables", "random_variables", "subproblem"],
-            "properties": {
-                "state_variables": {
-                    "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the subproblem.",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "object",
-                        "required": ["in", "out"],
-                        "properties": {
-                            "in": {
-                                "type": "string"
-                            },
-                            "out": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                },
-                "random_variables": {
-                    "description": "An array containing the names of the random variables in the subproblem.",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "subproblem": {
-                    "description": "The subproblem in MathOptFormat.",
-                    "oneOf": [{
-                        "$ref": "https://jump.dev/MathOptFormat/schemas/mof.1.0.schema.json"
-                    }, {
-                        "$ref": "https://jump.dev/MathOptFormat/schemas/mof.1.1.schema.json"
-                    }, {
-                        "$ref": "https://jump.dev/MathOptFormat/schemas/mof.1.2.schema.json"
-                    }]
                 }
             }
         }
