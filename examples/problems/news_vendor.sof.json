@@ -1,19 +1,16 @@
 {
   "author": "Oscar Dowson",
   "name": "newsvendor",
-  "date": "2020-07-10",
+  "date": "2023-05-02",
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
-  "version": {"major": 0, "minor": 2},
+  "version": {"major": 0, "minor": 3},
   "root": {
-    "state_variables": {
-      "x": {"initial_value": 0.0}
-    },
+    "state_variables": {"x": 0.0},
     "successors": {"first_stage": 1.0}
   },
   "nodes": {
     "first_stage": {
       "subproblem": "first_stage_subproblem",
-      "realizations": [],
       "successors": {"second_stage": 1.0}
     },
     "second_stage": {
@@ -21,8 +18,7 @@
       "realizations": [
         {"probability": 0.4, "support": {"d": 10.0}},
         {"probability": 0.6, "support": {"d": 14.0}}
-      ],
-      "successors": {}
+      ]
     }
   },
   "subproblems": {
@@ -30,7 +26,6 @@
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
-      "random_variables": [],
       "subproblem": {
         "version": {"major": 1, "minor": 2},
         "variables": [{"name": "x_in"}, {"name": "x_out"}],
@@ -95,13 +90,13 @@
   },
   "validation_scenarios": [
     [
-      {"node": "first_stage", "support": {}},
+      {"node": "first_stage"},
       {"node": "second_stage", "support": {"d": 10.0}}
     ], [
-      {"node": "first_stage", "support": {}},
+      {"node": "first_stage"},
       {"node": "second_stage", "support": {"d": 14.0}}
     ], [
-      {"node": "first_stage", "support": {}},
+      {"node": "first_stage"},
       {"node": "second_stage", "support": {"d": 9.0}}
     ]
   ]
