@@ -7,7 +7,7 @@ optimization problems called _StochOptFormat_, with the file extension
 For convenience, we abbreviate StochOptFormat to _SOF_.
 
 StochOptFormat is defined by the [JSON schema](http://JSON-schema.org)
-[`https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-0.2.schema.json).
+[`https://odow.github.io/StochOptFormat/versions/sof-0.3.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-0.3.schema.json).
 
 _Note: StochOptFormat is in development. If you have suggestions or comments,
 please [open an issue](https://github.com/odow/StochOptFormat/issues/new)._
@@ -247,19 +247,16 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
 {
   "author": "Oscar Dowson",
   "name": "newsvendor",
-  "date": "2020-07-10",
+  "date": "2023-05-02",
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
-  "version": {"major": 0, "minor": 2},
+  "version": {"major": 0, "minor": 3},
   "root": {
-    "state_variables": {
-      "x": {"initial_value": 0.0}
-    },
+    "state_variables": {"x": 0.0},
     "successors": {"first_stage": 1.0}
   },
   "nodes": {
     "first_stage": {
       "subproblem": "first_stage_subproblem",
-      "realizations": [],
       "successors": {"second_stage": 1.0}
     },
     "second_stage": {
@@ -267,8 +264,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
       "realizations": [
         {"probability": 0.4, "support": {"d": 10.0}},
         {"probability": 0.6, "support": {"d": 14.0}}
-      ],
-      "successors": {}
+      ]
     }
   },
   "subproblems": {
@@ -276,7 +272,6 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
       "state_variables": {
         "x": {"in": "x_in", "out": "x_out"}
       },
-      "random_variables": [],
       "subproblem": {
         "version": {"major": 1, "minor": 2},
         "variables": [{"name": "x_in"}, {"name": "x_out"}],
@@ -341,13 +336,13 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
   },
   "validation_scenarios": [
     [
-      {"node": "first_stage", "support": {}},
+      {"node": "first_stage"},
       {"node": "second_stage", "support": {"d": 10.0}}
     ], [
-      {"node": "first_stage", "support": {}},
+      {"node": "first_stage"},
       {"node": "second_stage", "support": {"d": 14.0}}
     ], [
-      {"node": "first_stage", "support": {}},
+      {"node": "first_stage"},
       {"node": "second_stage", "support": {"d": 9.0}}
     ]
   ]
@@ -383,12 +378,8 @@ After the optional metadata keys, there are four required keys:
   - `state_variables::Object`
 
     An object describing the state variables in the problem. Each key is the
-    unique name of a state variable. The value is an object with one required
-    key:
-
-    - `initial_value::Number`
-
-      The value of the state variable at the root node.
+    unique name of a state variable. The initial value of the state variable at
+    the root node.
 
   - `successors::Object`
 
@@ -407,7 +398,7 @@ After the optional metadata keys, there are four required keys:
     nodes can refer to the same subproblem to reduce redundancy if they share
     the same structural form.
 
-  - `realizations::List{Object}`
+  - `realizations::List{Object}` (Optional)
 
     A list of objects describing the finite discrete realizations of the
     independent random variable in each node. Each object has two required keys:
@@ -423,7 +414,7 @@ After the optional metadata keys, there are four required keys:
       `random_variables`, and the values are the value of the random variable in
       that realization.
 
-  - `successors::Object`
+  - `successors::Object` (Optional)
 
     An object in which the keys correspond to nodes and the values correspond to
     the probability of transitioning from the current node to the key node.
@@ -449,7 +440,7 @@ After the optional metadata keys, there are four required keys:
       The name of the variable representing the outgoing state variable in the
       subproblem.
 
-  - `random_variables::List{String}`
+  - `random_variables::List{String}` (Optional)
 
     A list of strings describing the name of each random variable in the
     subproblem.
@@ -464,13 +455,20 @@ There is also an optional key:
 
   Scenarios to be used to evaluate a policy. `validation_scenarios` is a list,
   containing one element for each scenario in the test set. Each element is a
-  list of objects. Each object has two required nodes: `node::String` and
-  `support::Object`. `node` is the name of the node to visit, and `support` is
-  the realization of the random variable at that node. Note that `support` may
-  be an _out-of-sample_ realization, that is, one which is not contained in the
-  corresponding `realizations` field of the node. Testing a policy is a larger
-  topic, so we expand on it in the section
-  [Problems, policies, and algorithms](#problems-policies-and-algorithms).
+  list of objects. Each object has two required fields:
+
+   - `node::String`
+
+     The name of the node to visit.
+
+   - `support::Object` (Optional)
+
+     The realization of the random variable at that node. Note that `support`
+     may be an _out-of-sample_ realization, that is, one which is not contained
+     in the corresponding `realizations` field of the node.
+
+Testing a policy is a larger topic, so we expand on it in the next section,
+[Problems, policies, and algorithms](#problems-policies-and-algorithms).
 
 ## Problems, policies, and algorithms
 

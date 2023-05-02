@@ -42,7 +42,7 @@ class TwoStageProblem:
             ),
             'versions',
         )
-        self.schema = os.path.join(version_dir, 'sof-0.2.schema.json')
+        self.schema = os.path.join(version_dir, 'sof-0.3.schema.json')
         self.result_schema = os.path.join(version_dir, 'sof-result.schema.json')
         if validate:
             self._validate_stochoptformat()
@@ -63,7 +63,7 @@ class TwoStageProblem:
                 name: ret_first['primal'][s['out']]
                 for (name, s) in self.second['state_variables'].items()
             }
-            for realization in self.second['realizations']:
+            for realization in self.second.get('realizations', []):
                 ret = self._solve_second_stage(x, realization['support'])
                 probabilities.append(realization['probability'])
                 objectives.append(ret['objective'])
@@ -106,7 +106,7 @@ class TwoStageProblem:
                 for (name, s) in self.second['state_variables'].items()
             }
             second_sol = self._solve_second_stage(
-                incoming_state, scenario[1]['support']
+                incoming_state, scenario[1].get('support', {})
             )
             solutions.append([first_sol, second_sol])
         solution = {
@@ -136,7 +136,7 @@ class TwoStageProblem:
         assert len(successors) == 1
         second_node, probability = next(iter(successors.items()))
         assert probability == 1.0
-        assert len(self.data['nodes'][second_node]['successors']) == 0
+        assert len(self.data['nodes'][second_node].get('successors', [])) == 0
         return first_node, second_node
 
     def _mathoptformat_to_pulp(self, name):
@@ -200,7 +200,7 @@ class TwoStageProblem:
             'subproblem': prob,
             'vars': vars,
             'state_variables': subproblem['state_variables'],
-            'realizations': node['realizations'],
+            'realizations': node.get('realizations', []),
         }
 
     def _incoming_state(self, sp, name):
@@ -212,8 +212,8 @@ class TwoStageProblem:
     def _initialize_first_stage(self, name):
         for (name, init) in self.data['root']['state_variables'].items():
             x = self.first['vars'][self.first['state_variables'][name]['in']]
-            x.lowBound = init['initial_value']
-            x.upBound = init['initial_value']
+            x.lowBound = init
+            x.upBound = init
         self.first['theta'] = pulp.LpVariable('theta', -10**6, 10**6)
         self.first['subproblem'].objective += self.first['theta']
         return

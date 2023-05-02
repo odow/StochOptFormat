@@ -34,7 +34,7 @@ import SHA
 
 const SCHEMA_DIR = joinpath(dirname(dirname(@__DIR__)), "versions")
 
-const SCHEMA_FILENAME = joinpath(SCHEMA_DIR, "sof-0.2.schema.json")
+const SCHEMA_FILENAME = joinpath(SCHEMA_DIR, "sof-0.3.schema.json")
 
 const RESULT_SCHEMA_FILENAME = joinpath(SCHEMA_DIR, "sof-result.schema.json")
 
@@ -62,7 +62,7 @@ function TwoStageProblem(filename::String; validate::Bool = true)
         _validate(data; schema_filename = SCHEMA_FILENAME)
     end
     @assert data["version"]["major"] == 0
-    @assert data["version"]["minor"] == 2
+    @assert data["version"]["minor"] == 3
     first, second = _get_stage_names(data)
     problem = TwoStageProblem(
         sha_256,
@@ -86,7 +86,7 @@ end
 function _initialize_first_stage(data::Dict, first::String, sp::JuMP.Model)
     for (name, init) in data["root"]["state_variables"]
         x = JuMP.variable_by_name(sp, sp.ext[:state_variables][name]["in"])
-        JuMP.fix(x, init["initial_value"]; force = true)
+        JuMP.fix(x, init; force = true)
     end
     JuMP.@variable(sp, -1e6 <= theta <= 1e6)
     JuMP.set_objective_function(sp, JuMP.objective_function(sp) + theta)
@@ -102,7 +102,7 @@ function _get_stage_names(data::Dict)
     @assert length(successors) == 1
     second_node, probability = first(successors)
     @assert probability == 1.0
-    @assert length(data["nodes"][second_node]["successors"]) == 0
+    @assert isempty(get(data["nodes"][second_node], "sucessors", Any[]))
     return first_node, second_node
 end
 
@@ -118,7 +118,7 @@ function _mathoptformat_to_jump(data, name)
     JuMP.MOI.copy_to(subproblem, model)
     JuMP.set_silent(subproblem)
     subproblem.ext[:state_variables] = sp["state_variables"]
-    subproblem.ext[:realizations] = node["realizations"]
+    subproblem.ext[:realizations] = get(node, "realizations", Any[])
     _convert_realizations(subproblem.ext[:realizations])
     return subproblem
 end
@@ -274,10 +274,11 @@ function evaluate(
             name => first_sol["primal"][s["out"]]
             for (name, s) in problem.second.ext[:state_variables]
         )
+        support = get(scenario[2], "support", Dict{String,Float64}())
         second_sol = _solve_second_stage(
             problem,
             incoming_state,
-            convert(Dict{String, Float64}, scenario[2]["support"]),
+            convert(Dict{String, Float64}, support),
         )
         push!(solutions, [first_sol, second_sol])
     end
