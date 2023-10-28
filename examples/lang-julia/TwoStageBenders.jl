@@ -32,9 +32,9 @@ import JuMP
 import Printf
 import SHA
 
-const SCHEMA_DIR = joinpath(dirname(dirname(@__DIR__)), "versions")
+const SCHEMA_DIR = joinpath(dirname(dirname(@__DIR__)), "schemas")
 
-const SCHEMA_FILENAME = joinpath(SCHEMA_DIR, "sof-0.3.schema.json")
+const SCHEMA_FILENAME = joinpath(SCHEMA_DIR, "sof-1.schema.json")
 
 const RESULT_SCHEMA_FILENAME = joinpath(SCHEMA_DIR, "sof-result.schema.json")
 
@@ -61,8 +61,8 @@ function TwoStageProblem(filename::String; validate::Bool = true)
     if validate
         _validate(data; schema_filename = SCHEMA_FILENAME)
     end
-    @assert data["version"]["major"] == 0
-    @assert data["version"]["minor"] == 3
+    @assert data["version"]["major"] == 1
+    @assert data["version"]["minor"] >= 0
     first, second = _get_stage_names(data)
     problem = TwoStageProblem(
         sha_256,

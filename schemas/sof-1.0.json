@@ -1,15 +1,22 @@
 {
     "$schema": "https://json-schema.org/schema#",
-    "$id": "https://odow.github.io/StochOptFormat/versions/sof-0.3.schema.json",
+    "$id": "https://odow.github.io/StochOptFormat/schemas/sof-1.0.schema.json",
     "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
     "required": ["version", "root", "nodes", "subproblems"],
+    "additionalProperties": false,
     "properties": {
         "version": {
             "description": "The version of StochOptFormat that this schema validates against.",
             "type": "object",
             "required": ["minor", "major"],
-            "properties": {"minor": {"const": 3}, "major": {"const": 0}}
+            "additionalProperties": false,
+            "properties": {
+                "minor": {
+                    "enum": [0]
+                },
+                "major": {"const": 1}
+            }
         },
         "name": {
             "description": "The name of the problem.",
@@ -31,16 +38,15 @@
             "description": "An object for the root node.",
             "type": "object",
             "required": ["state_variables", "successors"],
+            "additionalProperties": false,
             "properties": {
                 "state_variables": {
-                    "description": "A vector of state variables.",
+                    "description": "An object that maps the name of each state variable to the value of the state in the root node.",
                     "type": "object",
-                    "additionalProperties": {
-                        "description": "The value of the state variable at the root node.",
-                        "type": "number"
-                    }
+                    "additionalProperties": {"type": "number"}
                 },
                 "successors": {
+                    "description": "An object that maps the name of each node (for which an edge exists) to the probability of transitioning there from the root node.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
@@ -51,25 +57,33 @@
             }
         },
         "nodes": {
-            "description": "An object containing the nodes in the policy graph.",
+            "description": "An object that maps the name to an information object for each node in the policy graph.",
             "type": "object",
             "additionalProperties": {
                 "type": "object",
                 "required": ["subproblem"],
+                "additionalProperties": false,
                 "properties": {
-                    "subproblem": {"type": "string"},
+                    "subproblem": {
+                        "description": "The name of the associated subproblem",
+                        "type": "string"
+                    },
                     "realizations": {
+                        "description": "A vector describing the realizations of the random variables in the node.",
                         "type": "array",
                         "items": {
                             "type": "object",
                             "required": ["probability", "support"],
+                            "additionalProperties": false,
                             "properties": {
                                 "probability": {
+                                    "description": "The probability of sampling this realization.",
                                     "type": "number",
                                     "minimum": 0,
                                     "maximum": 1
                                 },
                                 "support": {
+                                    "description": "An object mapping the name of each random variable to a realization.",
                                     "type": "object",
                                     "additionalProperties": {"type": "number"}
                                 }
@@ -77,6 +91,7 @@
                         }
                     },
                     "successors": {
+                        "description": "An object that maps the name of each node (for which an edge exists) to the probability of transitioning there from the current node.",
                         "type": "object",
                         "additionalProperties": {
                             "type": "number",
@@ -94,6 +109,7 @@
                 "description": "A subproblem in the policy graph.",
                 "type": "object",
                 "required": ["state_variables", "subproblem"],
+                "additionalProperties": false,
                 "properties": {
                     "state_variables": {
                         "description": "An object that maps the name of the state variable to the incoming and outgoing state variables in the subproblem.",
@@ -101,6 +117,7 @@
                         "additionalProperties": {
                             "type": "object",
                             "required": ["in", "out"],
+                            "additionalProperties": false,
                             "properties": {
                                 "in": {"type": "string"},
                                 "out": {"type": "string"}
@@ -114,7 +131,7 @@
                     },
                     "subproblem": {
                         "description": "The subproblem in MathOptFormat. MOF is backward compatible, so we support all v1.X versions.",
-                        "$ref": "https://jump.dev/MathOptFormat/schemas/mof.1.2.schema.json"
+                        "$ref": "https://jump.dev/MathOptFormat/schemas/mof.1.schema.json"
                     }
                 }
             }
@@ -127,6 +144,7 @@
                 "items": {
                     "type": "object",
                     "required": ["node"],
+                    "additionalProperties": false,
                     "properties": {
                         "node": {"type": "string"},
                         "support": {

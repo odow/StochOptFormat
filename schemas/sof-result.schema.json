@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/schema#",
-    "$id": "https://odow.github.io/StochOptFormat/sof-result.schema.json",
+    "$id": "https://odow.github.io/StochOptFormat/schemas/sof-result.schema.json",
     "title": "The schema for an evaluated policy of a StochOptFormat problem.",
     "type": "object",
     "required": ["problem_sha256_checksum", "scenarios"],
@@ -28,21 +28,16 @@
                 "items": {
                     "type": "object",
                     "required": ["objective", "primal"],
+                    "additionalProperties": false,
                     "properties": {
-                        "objective": {
-                            "type": "number"
-                        },
+                        "objective": {"type": "number"},
                         "primal": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
-                            }
+                            "additionalProperties": {"type": "number"}
                         },
                         "dual": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
-                            }
+                            "additionalProperties": {"type": "number"}
                         }
                     }
                 }
