@@ -40,9 +40,9 @@ class TwoStageProblem:
             os.path.dirname(
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             ),
-            'versions',
+            'schemas',
         )
-        self.schema = os.path.join(version_dir, 'sof-0.3.schema.json')
+        self.schema = os.path.join(version_dir, 'sof-1.schema.json')
         self.result_schema = os.path.join(version_dir, 'sof-result.schema.json')
         if validate:
             self._validate_stochoptformat()

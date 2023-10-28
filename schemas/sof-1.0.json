@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/schema#",
-    "$id": "https://odow.github.io/StochOptFormat/versions/sof-1.0.schema.json",
+    "$id": "https://odow.github.io/StochOptFormat/schemas/sof-1.0.schema.json",
     "title": "The schema for a policy graph representation of a multistage stochastic program",
     "type": "object",
     "required": ["version", "root", "nodes", "subproblems"],
