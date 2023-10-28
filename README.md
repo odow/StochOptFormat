@@ -7,10 +7,7 @@ optimization problems called _StochOptFormat_, with the file extension
 For convenience, we abbreviate StochOptFormat to _SOF_.
 
 StochOptFormat is defined by the [JSON schema](http://JSON-schema.org)
-[`https://odow.github.io/StochOptFormat/versions/sof-0.3.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-0.3.schema.json).
-
-_Note: StochOptFormat is in development. If you have suggestions or comments,
-please [open an issue](https://github.com/odow/StochOptFormat/issues/new)._
+[`https://odow.github.io/StochOptFormat/versions/sof-1.schema.json`](https://odow.github.io/StochOptFormat/versions/sof-1.schema.json).
 
 **Authors**
 
@@ -92,9 +89,8 @@ When developing StochOptFormat, we set out to create:
 Equally as important as the things that we set out to do, are the things that we
 did _not_ set out to do:
 
- - We did not try to incorporate chance constraints
- - We did not try to incorporate continuous random variables
- - We did not try to incorporate decision-hazard nodes.
+ - We did not try to incorporate chance constraints.
+ - We did not try to incorporate continuous random variables.
 
 Finally, StochOptFormat is not an algebraic modeling language for stochastic
 programming. Instead, it is an instance format [5].
@@ -249,7 +245,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
   "name": "newsvendor",
   "date": "2023-05-02",
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
-  "version": {"major": 0, "minor": 3},
+  "version": {"major": 0, "minor": 4},
   "root": {
     "state_variables": {"x": 0.0},
     "successors": {"first_stage": 1.0}
@@ -548,7 +544,7 @@ resulting policy, such as expected objective values, and various quantiles.
   trivially extends to infinite horizon problems and problems with a stochastic
   process that is not stagewise independent.
 
-- Q: MathOptFormat is too complicated. Why can't we use LP or MPS files?
+- Q: Why MathOptFormat instead of LP or MPS files?
 
   A: MathOptFormat can be read and writen by most programming languages. In
   addition, it is very general and easy to extend. Please read Section 2 of [2]

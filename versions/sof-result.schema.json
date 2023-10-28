@@ -28,21 +28,16 @@
                 "items": {
                     "type": "object",
                     "required": ["objective", "primal"],
+                    "additionalProperties": false,
                     "properties": {
-                        "objective": {
-                            "type": "number"
-                        },
+                        "objective": {"type": "number"},
                         "primal": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
-                            }
+                            "additionalProperties": {"type": "number"}
                         },
                         "dual": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
-                            }
+                            "additionalProperties": {"type": "number"}
                         }
                     }
                 }
