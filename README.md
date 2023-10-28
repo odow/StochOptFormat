@@ -245,7 +245,7 @@ Encoded in StochOptFormat, the newsvendor problem becomes:
   "name": "newsvendor",
   "date": "2023-05-02",
   "description": "A StochOptFormat implementation of the classical two-stage newsvendor problem.",
-  "version": {"major": 0, "minor": 4},
+  "version": {"major": 1, "minor": 0},
   "root": {
     "state_variables": {"x": 0.0},
     "successors": {"first_stage": 1.0}
